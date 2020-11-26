@@ -123,3 +123,71 @@
 .DBModify {
   padding: 0px 20px 20px 20px;
 }
+
+.DBTable {
+  min-height: 30vmax;
+  max-height: 38vmax;
+  /* overflow-y: auto; */
+}
+
+.UsersTable {
+  height: 30vmax;
+}
+
+.ErrorAlert {
+  display: inline-block;
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  text-align: center;
+
+  overflow: hidden !important;
+  overflow-wrap: break-word !important;
+  max-width: 40%;
+  max-height: 3.5rem;
+
+  width: auto;
+  left: 50%;
+  margin-right: -50%;
+  transform: translate(-50%, 0);
+
+  margin-bottom: 0px;
+  margin-top: 10px;
+
+  color: white;
+}
+
+.ErrorAlert:hover {
+  box-shadow: 0px 0px 8px 2px #000000;
+  max-height: none;
+  /* bottom: -25rem; */
+}
+
+.pagination {
+  position: fixed;
+  width: auto;
+  left: 50%;
+  margin-right: -50%;
+  transform: translate(-50%, 0);
+  bottom: 0;
+}
+
+.hidden-button {
+  /* visibility: hidden; */
+  background: 0;
+  width: 20px;
+  opacity: 0%;
+  transition: transform 0.5s ease, opacity 0.5s ease-out;
+  transform: translate(40%, 0);
+}
+
+.hidden-button-parent:hover .hidden-button {
+  /* visibility: visible; */
+  opacity: 100%;
+  transition: opacity 0.3s ease-out;
+}
+
+.hidden-button-p-parent:hover .hidden-button-parent .hidden-button {
+  transform: translate(0, 0);
+  transition: transform 0.5s ease;
+}

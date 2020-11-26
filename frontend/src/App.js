@@ -2,12 +2,11 @@ import React from 'react';
 import {observer} from 'mobx-react';
 import UserStore from './store/UserStore';
 import LoginForm from './components/LoginForm';
-import ErrorAlert from './components/ErrorAlert';
+import AlertPopup from './components/AlertPopup';
 import Loading from './components/Loading'
 import './App.css';
 
 import 'bootstrap/dist/css/bootstrap.min.css'
-//import StockTable from './components/StockTable';
 import StockTable from './components/DBTables/StockTable';
 
 import Header from './components/Header'
@@ -104,7 +103,7 @@ class App extends React.Component{
       return (
         <div className="app">
           <div className="container">
-            <ErrorAlert error={connectionError} />
+            <AlertPopup error={connectionError} />
             <div className="center-screen">
               <LoginForm />
             </div>

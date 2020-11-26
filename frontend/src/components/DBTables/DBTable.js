@@ -1,8 +1,7 @@
 import React from 'react';
-import ErrorAlert from '../ErrorAlert'
-import {Table, Form, Container, Col, Button, ButtonGroup} from 'react-bootstrap';
+import AlertPopup from '../AlertPopup'
+import {Table, Form, Container, Col, Button, ButtonGroup, Pagination, Modal} from 'react-bootstrap';
 import Loading from '../Loading'
-import DBPartUpdate from '../DBModify/DBPartUpdate';
 
 class DBTable extends React.Component{
   constructor(props) {
@@ -21,6 +20,11 @@ class DBTable extends React.Component{
       editColumn: null,
       editRow: null,
       lastRow: null,
+
+      page: 0,
+      entriesPerPage: 20,
+
+      nameToDelete: '',
     }
   }
   
@@ -114,54 +118,60 @@ class DBTable extends React.Component{
         onSubmit={!buttonDisabled ? (e) => this.search(e) : null}
         >    
           <Container fluid>
-              <Form.Row 
-                  className="search-bar"
-              >
-              <Col xs="auto" lg="8">
-              <Form.Control
-                required
-                type="text"
-                placeholder="Search"
-                value={this.state.search}
-                style={{width: "100%"}}
-                onChange={(val) => this.setSearchValue(val.target.value)}
-                />
-              </Col>
-              <Col xs="auto" lg="4">
-                <ButtonGroup>
-                <Button
-                  type="submit" 
-                  className="AppButton mb-2 mr-sm-2"
-                  onClick={!buttonDisabled ? (e) => this.search(e, false) : null}
-                  >
-                    Search
-                </Button>
-                <Button
-                  type="submit" 
-                  className="AppButton mb-2 mr-sm-2"
-                  onClick={!buttonDisabled ? (e) => this.search(e, true) : null}
-                  >
-                    Search Similar
-                </Button>
-                <Button
-                  type="submit" 
-                  className="AppButton mb-2 mr-sm-2"
-                  style={{paddingRight: "20px"}}
-                  onClick={!buttonDisabled ? (e) => this.searchReset(e) : null}
-                  >
-                    Reset
-                </Button>
-                </ButtonGroup>
-              </Col>
-          </Form.Row>
-            {this.renderSearchResults()}
+                <Form.Row 
+                    className="search-bar"
+                >
+                <Col xs="auto" lg="8">
+                <Form.Control
+                  required
+                  type="text"
+                  placeholder="Search"
+                  value={this.state.search}
+                  style={{width: "100%"}}
+                  onChange={(val) => this.setSearchValue(val.target.value)}
+                  />
+                </Col>
+                <Col xs="auto" lg="4">
+                  <ButtonGroup>
+                  <Button
+                    type="submit" 
+                    className="AppButton mb-2 mr-sm-2"
+                    onClick={!buttonDisabled ? (e) => this.search(e, false) : null}
+                    >
+                      Search
+                  </Button>
+                  <Button
+                    type="submit" 
+                    className="AppButton mb-2 mr-sm-2"
+                    onClick={!buttonDisabled ? (e) => this.search(e, true) : null}
+                    >
+                      Search Similar
+                  </Button>
+                  <Button
+                    type="submit" 
+                    className="AppButton mb-2 mr-sm-2"
+                    style={{paddingRight: "20px"}}
+                    onClick={!buttonDisabled ? (e) => this.searchReset(e) : null}
+                    >
+                      Reset
+                  </Button>
+                  </ButtonGroup>
+                </Col>
+            </Form.Row>
+          
+          {this.renderSearchResults()}
+
         </Container>
         </Form>
         
-        <ErrorAlert error={this.state.error}/>
+        <AlertPopup error={this.state.error}/>
         {this.state.isLoading ? <Loading message="Loading entries..."/> : null}
       </div>
     )
+  }
+
+  confirmDelete(e) {
+    console.log('Use this to confirm deletes')
   }
 
   renderTableHeadings() {
@@ -170,7 +180,11 @@ class DBTable extends React.Component{
 
     if (entries && entries.length > 0 && showColumns && showColumns.length > 0) {
         return (
-            <tr>
+            <tr className="hidden-button-parent">
+              <th key={-1} className="hidden-button">
+                <Button onClick={(e) => this.confirmDelete(e)} className="AppButton" size="sm">Confirm</Button>
+              </th>
+
               {
                   Object.keys(entries[0]).map(function(key, index) {
                         if (showColumns.includes(key)) {
@@ -192,7 +206,7 @@ class DBTable extends React.Component{
     if (this.state.lastRow) {
       this.state.lastRow.setAttribute("style", "");
     }
-
+    
     const index = e.currentTarget.getAttribute('index');
     e.currentTarget.parentElement.setAttribute("style", "background-color: #FFE4B5");
     this.setState({editRow: this.state.entries[index]})
@@ -201,24 +215,87 @@ class DBTable extends React.Component{
   }
 
   // Only called if successful
-  submitUpdate() {
+  onUpdateSuccess() {
     if (this.state.lastRow) {
       this.state.lastRow.setAttribute("style", "background-color: #9ACD32");
     }
     this.componentDidMount();
   }
 
-  // TODO 2020-11-22
+  onUpdateFailure() {
+    if (this.state.lastRow) {
+      this.state.lastRow.setAttribute("style", "background-color: #F08080");
+    }
+    this.componentDidMount();
+  }
+
+  async callRemove() {
+    const partName = this.state.nameToDelete;
+    if (!partName) {
+      console.log('no name to delete')
+      return;
+    }
+
+    try {
+
+      let res = await fetch('/api/parts/remove', {
+        method: 'post',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({parts: [{
+            name: partName,
+        }]}
+        )
+      });
+
+      let result = await res.json();
+      if (result && result.success) {
+        this.setState({error: {message: `Successfully deleted ${partName}`, variant: 'success'}});
+        this.componentDidMount();
+      }
+      else if (result && result.success === false)
+      {
+        this.setState({error: {message: `Failed to deltete ${partName}`, variant: 'warning'}});
+      }
+
+    } catch(e) {
+      this.setState({error: {message: `Error delteting ${partName}`, variant: 'danger'}});
+    }
+  }
+
+  closeConfirmDelete() {
+    this.setState({nameToDelete: ''});
+  }
+
+  confirmDelete() {
+    this.callRemove();
+    this.setState({nameToDelete: ''});
+  }
+
+  deleteByName(e) {
+    const partName = e.currentTarget.parentElement.parentElement.getElementsByTagName('td')[1].innerHTML;
+
+    this.setState({nameToDelete: partName});
+  }
+
   renderTableEntries () {
-    console.log("renderTableEntries")
     const {entries} = this.state
     const showColumns = this.props.showColumns
 
     if (entries && showColumns && showColumns.length > 0) {
 
       let arrEntries = []
+      var start = this.state.page * this.state.entriesPerPage;
+      var end = (this.state.page + 1) * this.state.entriesPerPage;
       var i
-      for (i = 0; i < entries.length; i++) {
+      for (i = start; i < end; i++) {
+
+        if (i >= entries.length) {
+          break;
+        }
+
         let rows = Object.keys(entries[i]).map((key, idx) => {          
           if (showColumns.includes(key)) {
             return (
@@ -235,53 +312,103 @@ class DBTable extends React.Component{
 
       let arrEntriesDivided = []
       for (i = 0; i < arrEntries.length; i++) {
+        
         arrEntriesDivided.push(
-          <tr key={i}>
+          <tr key={i}className="hidden-button-parent" >
+              <td className="hidden-button" >
+              <Button onClick={(e) => this.deleteByName(e)} className="AppButton" size="sm">Delete</Button>
+              </td>
             {arrEntries[i]}
+
           </tr>
         )
       }
-
+      
       return arrEntriesDivided
     } else {
       return null
     }
   }
 
-  renderEdit() {
-    let column = this.state.editColumn
-    let row = this.state.editRow
+  changePage(e) {
+    e.preventDefault();
+    const index = e.currentTarget.getAttribute('index');
 
-    if (!row || !column) {
-      return null
+    let page = this.state.page;
+    switch(index) {
+      case 'First':
+        page = 0;
+        break;
+      case 'Prev':
+        page = this.state.page - 1;
+        if (page < 0) {
+          page = 0;
+        }
+        break;
+      case 'Next':
+        page = this.state.page + 1;
+        if ((page * this.state.entriesPerPage) > this.state.entries.length) {
+          page = this.state.page;
+        }
+        break;
+      case 'Last':
+        page = Math.floor(this.state.entries.length / this.state.entriesPerPage);
+        break;
     }
 
-    return (
-      <DBPartUpdate 
-        partName={row.name} 
-        partQuantity={row.quantity}
-        partBookcase={row.bookcase}
-        partShelf={row.shelf}
-        onSubmit={() => this.submitUpdate()}
-      />
-    )
+    this.setState({page});
   }
 
   renderTable() {
-    return (
-      <div className="DBTable">
-          {this.renderEdit()}
+    if (!this.state.entries) {
+      return null;
+    }
 
-        <Table striped bordered hover>
-            <thead>
-                {this.renderTableHeadings()}
-            </thead>
-            <tbody>
-                {this.renderTableEntries()}
-            </tbody>
-        </Table>
-        
-        {!this.state.entries ? <Loading message="Loading results"/> : null}
+    const first = 0;
+    const last = Math.floor(this.state.entries.length / this.state.entriesPerPage);
+
+    return (
+      <div>
+        <div className="DBTable">
+
+          <Table className="hidden-button-p-parent" striped bordered size="sm">
+              <thead>
+                  {this.renderTableHeadings()}
+              </thead>
+              <tbody>
+                  {this.renderTableEntries()}
+              </tbody>
+          </Table>
+
+          <div className="pagination">
+            <Pagination>
+              <Pagination.First disabled={this.state.page === 0} index='First' onClick={(e) => this.changePage(e)}/>
+              <Pagination.Prev disabled={this.state.page === 0} index='Prev' onClick={(e) => this.changePage(e)}/>
+              <Pagination.Item active>{this.state.page + 1}</Pagination.Item>
+              <Pagination.Next disabled={this.state.page === last} index='Next' onClick={(e) => this.changePage(e)} />
+              <Pagination.Last disabled={this.state.page === last} index='Last' onClick={(e) => this.changePage(e)}/>
+            </Pagination>
+          </div>
+
+          <Modal show={(this.state.nameToDelete !== '')} onHide={() => this.closeConfirmDelete()}>
+            <Modal.Header closeButton>
+              <Modal.Title>Deleting part</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              Are you sure you want to delete <i>{this.state.nameToDelete}</i>?
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={() => this.closeConfirmDelete()}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={() => this.confirmDelete()}>
+                Confirm
+              </Button>
+            </Modal.Footer>
+          </Modal>
+          
+          {!this.state.entries ? <Loading message="Loading results"/> : null}
+        </div>
       </div>
     )
   }

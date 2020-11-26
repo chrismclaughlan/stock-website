@@ -61,7 +61,7 @@ app.get('/', function(req, res) {
 
 app.get('/api/users', function(req, res) {
     console.log(req.query)
-    let {username, similar, page, limit} = req.query
+    let {username, similar} = req.query
     let QUERY
 
     if (!req.session.userID) {
@@ -85,7 +85,7 @@ app.get('/api/users', function(req, res) {
     console.log(QUERY)
 
     let response
-    db.query(QUERY, (err, results) => {
+    db.query(QUERY, function(err, results) {
         if (err) {
             console.log(err)
             return res.send({
@@ -143,37 +143,38 @@ app.get('/api/parts', function(req, res) {
     }
 
     let response;
-    db.query(QUERY, (err, results) => {
+    return db.query(QUERY, (err, results) => {
         if (err) {
             console.log(err)
-            return res.send({
+            res.send({
                 successful: false,
                 error: err,
             })
+            return false;
         }
 
         if (results && results.length > 0)
         {
-            response = {
+            res.send({
                 successful: true,
                 query: {
                     string: name, 
                     similar,
                 },
                 results,
-            }
+            });
+            return true;
+            
         } else {
-            console.log("Could not find results")
-            response = {
+            res.send({
                 successful: false,
                 query: {
                     string: name, 
                     similar,
                 },
-            }
+            });
+            return false;
         }
-
-        return res.send(response)
     });
 });
 

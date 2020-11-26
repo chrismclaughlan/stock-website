@@ -3,7 +3,7 @@ import {Nav} from 'react-bootstrap';
 import AdminPanelUsers from './AdminPanelUsers'
 import AdminPanelParts from './AdminPanelParts'
 import AdminPanelLogs from './AdminPanelLogs'
-import ErrorAlert from '../ErrorAlert'
+import AlertPopup from '../AlertPopup'
 
 const tabs = ['Users', 'Parts', 'Logs']
 
@@ -14,6 +14,10 @@ class AdminPanel extends React.Component{
 
         this.state = {
             tab: tabs[0],
+            error: {
+                message: '',
+                variant: '',
+            }
         }
     }
 
@@ -74,7 +78,7 @@ class AdminPanel extends React.Component{
                     }
                 </Nav>
 
-                <ErrorAlert error={error}/>
+                <AlertPopup error={error}/>
             </div>
 
             <div className="container">

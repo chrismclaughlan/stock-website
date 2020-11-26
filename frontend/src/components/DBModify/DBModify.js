@@ -1,5 +1,6 @@
 import React from 'react';
 import {Form, Col, Button} from 'react-bootstrap'
+import AlertPopup from '../AlertPopup';
 
 class DBModify extends React.Component{
   constructor(props) {
@@ -9,18 +10,19 @@ class DBModify extends React.Component{
       entries: null,
       isLoading: false,
       error: {
-        message: null,
-        variant: null,
+        message: '',
+        variant: '',
       },
       partName: '',
       partQuantity: '',
       partBookcase: '',
       partShelf: '',
       maxSearchLength: 255,
+      textInput: null,
     }
   }
 
-  async execute(url) {
+  async execute(url, successMessage) {
     try
     {
         let res = await fetch(url, {
@@ -40,16 +42,26 @@ class DBModify extends React.Component{
 
         let result = await res.json();
         if (result && result.success) {
-          this.props.onSubmit();  // refresh entries after updating them
+          this.setState({error: {message: `Successfully ${successMessage} ${this.state.partName}`, variant: 'success'}});
+          if (this.props.onSuccess) {
+            this.props.onSuccess();
+          }
         }
         else if (result && result.success === false)
         {
-          alert(result.msg);
+          this.setState({error: {message: result.msg, variant: 'warning'}});
+          if (this.props.onFailure) {
+            this.props.onFailure();
+          }
         }
     }
     catch(e)
     {
         console.log(e);
+        this.setState({error: {message: 'An Error occured', variant: 'danger'}});
+        if (this.props.onFailure) {
+          this.props.onFailure();
+        }
     }
   }
 
@@ -59,9 +71,12 @@ class DBModify extends React.Component{
     this.setState({
         partName, partQuantity, partBookcase, partShelf
     })
+
+    this.textInput.focus();
   }
 
-  setProperty(property, val) {
+  setProperty(property, e) {
+    let val = e.currentTarget.value;
     val.trim()
     if (val.length > this.state.maxSearchLength) {
       return;
@@ -70,12 +85,14 @@ class DBModify extends React.Component{
     this.setState({[property]: val})
   }
 
-  render(title) {
+  // {name: {disable: false, placeholder: 'Name'}, quantity: {disable: true, placeholder: 'Take'}}
+  render(title, properties) {
     let isValidated = false
     let buttonDisabled = false
 
       return (
         <div className="DBModify">
+          <AlertPopup error={this.state.error}/>
           <div className="container">
             <Form
               noValidate 
@@ -85,31 +102,36 @@ class DBModify extends React.Component{
               <Form.Label className="FormLabel">{title}</Form.Label>
               <Form.Row>
                 <Col xs="auto" lg="5">
-                  <Form.Control 
-                    placeholder="Name"
+                  <Form.Control
+                    readOnly={properties.name.disable}
+                    placeholder={properties.name.placeholder}
                     value={this.state.partName}
-                    onChange={(val) => this.setProperty('partName', val.target.value)}
+                    onChange={(e) => this.setProperty('partName', e)}
                   />
                 </Col>
                 <Col xs="auto" lg="2">
                   <Form.Control 
-                    placeholder="Quantity"
-                    value={this.state.partQuantity}
-                    onChange={(val) => this.setProperty('partQuantity', val.target.value)}
+                    readOnly={properties.quantity.disable}
+                    placeholder={properties.quantity.placeholder}
+                    value={(this.state.partQuantity)}
+                    onChange={(e) => this.setProperty('partQuantity', e)}
+                    ref={elem => (this.textInput = elem)}
                   />
                 </Col>
                 <Col xs="auto" lg="2">
                   <Form.Control 
-                    placeholder="Bookcase"
+                    readOnly={properties.bookcase.disable}
+                    placeholder={properties.bookcase.placeholder}
                     value={this.state.partBookcase}
-                    onChange={(val) => this.setProperty('partBookcase', val.target.value)}
+                    onChange={(e) => this.setProperty('partBookcase', e)}
                   />
                 </Col>
                 <Col xs="auto" lg="2">
                   <Form.Control 
-                    placeholder="Shelf"
+                    readOnly={properties.shelf.disable}
+                    placeholder={properties.shelf.placeholder}
                     value={this.state.partShelf}
-                    onChange={(val) => this.setProperty('partShelf', val.target.value)}
+                    onChange={(e) => this.setProperty('partShelf', e)}
                   />
                 </Col>
                 <Col xs="auto" lg="1">

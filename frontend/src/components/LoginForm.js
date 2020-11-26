@@ -1,6 +1,7 @@
 import React from 'react';
 import UserStore from '../store/UserStore';
 import {Form, Col, Button, InputGroup, FormControl, Container} from 'react-bootstrap'
+import AlertPopup from './AlertPopup'
 
 
 class LoginForm extends React.Component{
@@ -10,7 +11,11 @@ class LoginForm extends React.Component{
         this.state = {
             username: '',
             password: '',
-            buttonDisabled: false
+            buttonDisabled: false,
+            error: {
+                message: '',
+                variant: '',
+            }
         }
     }
 
@@ -66,11 +71,12 @@ class LoginForm extends React.Component{
             if (result && result.success) {
                 UserStore.isLoggedIn = true;
                 UserStore.username = result.username;
+                this.setState({error: {message: '', variant: ''}});
             }
             else if (result && result.success === false)
             {
                 this.resetForm();
-                alert(result.msg);
+                this.setState({error: {message: 'Incorrect login details', variant: 'warning'}});
             }
 
             //console.log(`result=${result} and result.success=${result.success} and UserStore.isLoggedIn=${UserStore.isLoggedIn}`)
@@ -79,6 +85,7 @@ class LoginForm extends React.Component{
         {
             console.log(e);
             this.resetForm();
+            this.setState({error: {message: 'Incorrect login details', variant: 'warning'}});
         }
     }
 
@@ -87,6 +94,8 @@ class LoginForm extends React.Component{
 
         return (
             <div className="loginForm">
+                <AlertPopup error={this.state.error}/>
+
                     <Form inline noValidate 
                         validated={isValidated} 
                         onSubmit={!this.state.buttonDisabled ? (e) => this.doLogin(e) : null}

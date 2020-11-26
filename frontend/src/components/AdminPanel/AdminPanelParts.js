@@ -1,12 +1,14 @@
 import React from 'react';
-import DBPartAdd from '../DBModify/DBPartAdd'
+import AlertPopup from '../AlertPopup';
+import DBPartAddNew from '../DBModify/DBPartAddNew'
+import DBPartRemove from '../DBModify/DBPartRemove'
 
 class AdminPanelParts extends React.Component{
-
   render() {
       return (
           <div className="AdminPanelParts">
-            <DBPartAdd />
+            <DBPartAddNew />
+            <DBPartRemove />
           </div>
       )
   }
