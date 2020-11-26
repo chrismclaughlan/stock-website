@@ -29,6 +29,42 @@ class StockTable extends DBTable{
     }
   };
 
+  async callRemove() {
+    const partName = this.state.nameToDelete;
+    if (!partName) {
+      console.log('no name to delete')
+      return;
+    }
+
+    try {
+
+      let res = await fetch('/api/parts/remove', {
+        method: 'post',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({parts: [{
+            name: partName,
+        }]}
+        )
+      });
+
+      let result = await res.json();
+      if (result && result.success) {
+        this.setState({error: {message: `Successfully deleted ${partName}`, variant: 'success'}});
+        this.componentDidMount();
+      }
+      else if (result && result.success === false)
+      {
+        this.setState({error: {message: `Failed to deltete ${partName}`, variant: 'warning'}});
+      }
+
+    } catch(e) {
+      this.setState({error: {message: `Error delteting ${partName}`, variant: 'danger'}});
+    }
+  }
+
   renderEdit() {
     let column = this.state.editColumn
     let row = this.state.editRow

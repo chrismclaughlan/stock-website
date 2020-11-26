@@ -1,6 +1,6 @@
 import DBModify from './DBModify'
 
-class DBPartAddNew extends DBModify { 
+class DBPartAdd extends DBModify { 
 
   constructor(props) {
       super(props)
@@ -8,7 +8,7 @@ class DBPartAddNew extends DBModify {
 
   doExecute(e) {
     e.preventDefault()
-    this.execute('/api/parts/add-new', 'added')
+    this.execute('/api/parts/add', 'added')
   }
 
   componentDidMount() {
@@ -34,4 +34,4 @@ class DBPartAddNew extends DBModify {
   }
 }
 
-export default DBPartAddNew;
+export default DBPartAdd;

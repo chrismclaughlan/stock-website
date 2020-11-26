@@ -7,6 +7,7 @@ const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
 const SessionRouter = require('./SessionRouter');
 const PartsRouter = require('./PartsRouter');
+const UsersRouter = require('./UsersRouter');
 
 const result = dotenv.config();
 if (result.error) {
@@ -54,6 +55,7 @@ app.use(session({
 
 new SessionRouter(app, db);
 new PartsRouter(app, db);
+new UsersRouter(app, db);
 
 app.get('/', function(req, res) {
     res.send(path.join(__dirname, 'build', 'index.html'));

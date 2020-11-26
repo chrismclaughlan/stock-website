@@ -30,6 +30,42 @@ class UsersTable extends DBTable{
     }
   };
 
+  async callRemove() {
+    const username = this.state.nameToDelete;
+    if (!username) {
+      console.log('no name to delete')
+      return;
+    }
+
+    try {
+
+      let res = await fetch('/api/users/remove', {
+        method: 'post',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({users: [{
+            username,
+        }]}
+        )
+      });
+
+      let result = await res.json();
+      if (result && result.success) {
+        this.setState({error: {message: `Successfully deleted ${username}`, variant: 'success'}});
+        this.componentDidMount();
+      }
+      else if (result && result.success === false)
+      {
+        this.setState({error: {message: `Failed to deltete ${username}`, variant: 'warning'}});
+      }
+
+    } catch(e) {
+      this.setState({error: {message: `Error delteting ${username}`, variant: 'danger'}});
+    }
+  }
+
   render() {    
     return (
       <div className="UsersTable">

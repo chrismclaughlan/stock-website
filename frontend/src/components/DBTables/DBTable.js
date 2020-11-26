@@ -208,7 +208,7 @@ class DBTable extends React.Component{
     }
     
     const index = e.currentTarget.getAttribute('index');
-    e.currentTarget.parentElement.setAttribute("style", "background-color: #FFE4B5");
+    e.currentTarget.parentElement.setAttribute("style", "background-color: rgba(135,206,235, 0.3); box-shadow: 0px 0px 5px 2px #dee2e6");
     this.setState({editRow: this.state.entries[index]})
     this.setState({editColumn: key})
     this.setState({lastRow: e.currentTarget.parentElement})
@@ -217,52 +217,16 @@ class DBTable extends React.Component{
   // Only called if successful
   onUpdateSuccess() {
     if (this.state.lastRow) {
-      this.state.lastRow.setAttribute("style", "background-color: #9ACD32");
+      this.state.lastRow.setAttribute("style", "background-color: rgba(154,205,50, 0.5); box-shadow: 0px 0px 5px 2px #dee2e6");
     }
     this.componentDidMount();
   }
 
   onUpdateFailure() {
     if (this.state.lastRow) {
-      this.state.lastRow.setAttribute("style", "background-color: #F08080");
+      this.state.lastRow.setAttribute("style", "background-color: rgba(255,228,181, 0.5); box-shadow: 0px 0px 5px 2px #dee2e6");
     }
     this.componentDidMount();
-  }
-
-  async callRemove() {
-    const partName = this.state.nameToDelete;
-    if (!partName) {
-      console.log('no name to delete')
-      return;
-    }
-
-    try {
-
-      let res = await fetch('/api/parts/remove', {
-        method: 'post',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({parts: [{
-            name: partName,
-        }]}
-        )
-      });
-
-      let result = await res.json();
-      if (result && result.success) {
-        this.setState({error: {message: `Successfully deleted ${partName}`, variant: 'success'}});
-        this.componentDidMount();
-      }
-      else if (result && result.success === false)
-      {
-        this.setState({error: {message: `Failed to deltete ${partName}`, variant: 'warning'}});
-      }
-
-    } catch(e) {
-      this.setState({error: {message: `Error delteting ${partName}`, variant: 'danger'}});
-    }
   }
 
   closeConfirmDelete() {

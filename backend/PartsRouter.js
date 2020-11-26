@@ -145,7 +145,7 @@ class PartsRouter {
     }
 
     add(app, db) {
-        app.post('/api/parts/add-new', (req, res) => {
+        app.post('/api/parts/add', (req, res) => {
             
             const parts = getPartsFromReq(req, res);
             if (!parts) {
@@ -158,7 +158,7 @@ class PartsRouter {
             }
             
             const query = 'INSERT INTO parts(quantity, bookcase, shelf, name) VALUES(?, ?, ?, ?)';
-            return queryParts(query, cols, 'changing', parts, db, res);
+            return queryParts(query, cols, 'adding', parts, db, res);
         });
     }
 
@@ -186,7 +186,7 @@ class PartsRouter {
             const cols = [name];
             
             const query = 'DELETE FROM parts WHERE name = ?';
-            return queryParts(query, cols, 'deleting', parts, db, res);
+            return queryParts(query, cols, 'removing', parts, db, res);
 
         });
     }
