@@ -1,7 +1,6 @@
 import React from 'react';
 import DBTable from './DBTable'
 import DBPartUpdate from '../DBModify/DBPartUpdate';
-import DBPartAddSub from '../DBModify/DBPartAddSub';
 
 const QUERY_ALL = '/api/parts';
 const QUERY_NAME = 'name=';
@@ -10,7 +9,6 @@ const QUERY_SIMILAR = 'similar=';
 class StockTable extends DBTable{
 
   async componentDidMount() {
-    console.log(" HELLO")
     this.query(QUERY_ALL)
   }
 

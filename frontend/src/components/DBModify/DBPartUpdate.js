@@ -1,6 +1,6 @@
-import DBModify from './DBModify'
+import DBPartModify from './DBPartModify'
 
-class DBPartUpdate extends DBModify { 
+class DBPartUpdate extends DBPartModify { 
 
   constructor(props) {
       super(props)

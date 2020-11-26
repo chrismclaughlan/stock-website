@@ -31,7 +31,6 @@ const getUsernameFromUser = (user, res) => {
     return [username];
 }
 
-
 const getPasswordUsernameFromUser = (user, res) => {
     let {username, password} = user;
 
@@ -45,6 +44,9 @@ const getPasswordUsernameFromUser = (user, res) => {
 
     username = username.trim();
     username = username.toLowerCase()
+
+    password = bcrypt.hashSync(password, 9);
+
     return [password, username];
 }
 
@@ -74,7 +76,7 @@ const queryUsers = (query, cols, verbMsg, users, db, res) => {
 
             res.json({
                 success: false,
-                query: parts,
+                query: users,
                 msg: `Error ${verbMsg} user: ${message}`
             })
             return false;
@@ -137,7 +139,7 @@ class UsersRouter {
             if (!cols) {
                 return false;
             }
-            
+
             const query = 'INSERT INTO users(password, username) VALUES(?, ?)';
             return queryUsers(query, cols, 'adding', users, db, res);
         });

@@ -1,5 +1,7 @@
 import React from 'react';
 import DBTable from './DBTable'
+import DBUserAdd from '../DBModify/DBUserAdd'
+import DBUserUpdate from '../DBModify/DBUserUpdate'
 
 const QUERY_ALL = '/api/users';
 const QUERY_NAME = 'username=';
@@ -66,10 +68,32 @@ class UsersTable extends DBTable{
     }
   }
 
-  render() {    
+  renderEdit() {
+    let column = this.state.editColumn
+    let row = this.state.editRow
+
+    if (!row || !column) {
+      return null
+    }
+
+    return (
+      <DBUserUpdate 
+        username={row.username}
+        onSuccess={() => this.onUpdateSuccess()}
+        onFailure={() => this.onUpdateFailure()}
+      />
+    )
+  }
+
+  render() {
     return (
       <div className="UsersTable">
         {this.renderSearchBar()}
+        {this.renderEdit()}
+        <DBUserAdd 
+          onSuccess={() => this.onUpdateSuccess()}
+          onFailure={() => this.onUpdateFailure()}
+        />
         {this.renderTable()}
       </div>
     )

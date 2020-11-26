@@ -12,13 +12,4 @@ class AdminPanelUsers extends React.Component{
   }
 }
 
-{/* <Col xs="auto" lg="2">
-<Form.Check
-  type="checkbox"
-  id="autoSizingCheck"
-  className="mb-2"
-  label="Make Admin"
-/>
-</Col> */}
-
 export default AdminPanelUsers;
