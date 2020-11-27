@@ -53,7 +53,8 @@ class SessionRouter {
 
                             res.json({
                                 success: true,
-                                username: data[0].username
+                                username: data[0].username,
+                                privileges: data[0].privileges,
                             })
 
                             console.log(`'${username}' logged in`)
@@ -63,6 +64,7 @@ class SessionRouter {
                         else {
                             res.json({
                                 success: false,
+                                passwordIncorrect: true,
                                 msg: 'Wrong password, please try again'
                             })
                         }
@@ -71,6 +73,7 @@ class SessionRouter {
                 else {
                     res.json({
                         success: false,
+                        usernameIncorrect: true,
                         msg: 'User not found, please try again'
                     })
                 }
@@ -106,7 +109,8 @@ class SessionRouter {
                     if (data && data.length === 1) {
                         res.json({
                             success: true,
-                            username: data[0].username
+                            username: data[0].username,
+                            privileges: data[0].privileges,
                         })
 
                         return true;

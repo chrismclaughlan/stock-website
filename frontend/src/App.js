@@ -28,8 +28,6 @@ class App extends React.Component{
         variant: null,
       }
     };
-
-
   }
 
   async componentDidMount() {
@@ -49,15 +47,20 @@ class App extends React.Component{
         UserStore.loading = false;
         UserStore.isLoggedIn = true;
         UserStore.username = result.username;
+        UserStore.privileges = result.privileges;
       } else {
         UserStore.loading = false;
         UserStore.isLoggedIn = false;
+        UserStore.username = '';
+        UserStore.privileges = 0;
       }
 
     } catch (e) {
       console.log(`Error trying to fetch '/isLoggedIn': '${e}'`)
       UserStore.loading = false;
       UserStore.isLoggedIn = false;
+      UserStore.username = '';
+      UserStore.privileges = 0;
       this.setState({connectionError: {message: 'Error checking login status', variant: 'danger'}})
     }
   }
@@ -80,6 +83,7 @@ class App extends React.Component{
       if (result && result.success) {
         UserStore.isLoggedIn = false;
         UserStore.username = '';
+        UserStore.privileges = 0;
       }
     }
     catch (e) {
@@ -115,8 +119,7 @@ class App extends React.Component{
     return (
       <div className="App">
         <BrowserRouter>
-          <Header 
-            username={UserStore.username} 
+          <Header
             onLogout={() => this.doLogout()}
           />
 
@@ -135,7 +138,7 @@ class App extends React.Component{
             <Route exact path="/account">
               <Account />
             </Route>
-
+            
             <Route exact path="/admin-panel">
               <AdminPanel />
             </Route>

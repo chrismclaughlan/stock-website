@@ -62,32 +62,47 @@ app.get('/', function(req, res) {
 });
 
 app.get('/api/users', function(req, res) {
-    console.log(req.query)
-    let {username, similar} = req.query
-    let QUERY
+    let {username, similar, privileges} = req.query
 
     if (!req.session.userID) {
-        return res.send({
+        res.send({
             successful: false, 
-            notAuthorised: true,
+            msg: 'Not authorised',
         })
+
+        return false;
     }
 
     // Check if admin?
 
-    if (username === undefined) {
-        QUERY = 'SELECT username FROM users'
-        username = false
-    } else if (similar) {
-        QUERY = `SELECT username FROM users WHERE username LIKE '${username}%'`
+    let cols;
+    let QUERY = 'SELECT username FROM users';
+
+    if (username !== undefined) {
+        QUERY = QUERY + ' WHERE username';
+        
+        if (similar) {
+            QUERY = QUERY + ` LIKE '${username}%'`;
+        } else {
+            QUERY = QUERY + ` = '${username}'`;
+        }
+        
+        if (privileges !== undefined) {
+            QUERY = QUERY + ` AND privileges >= '${privileges}'`;
+        }
     } else {
-        QUERY = `SELECT username FROM users WHERE username = '${username}'`
+        
+        username = '';
+
+        if (privileges !== undefined) {
+            QUERY = QUERY + ` WHERE privileges >= '${privileges}'`;
+        }
     }
 
     console.log(QUERY)
 
     let response
-    db.query(QUERY, function(err, results) {
+    db.query(QUERY, cols, function(err, results) {
         if (err) {
             console.log(err)
             return res.send({
@@ -95,6 +110,7 @@ app.get('/api/users', function(req, res) {
                 query: {
                     string: username, 
                     similar,
+                    privileges,
                 },
                 error: err,
             })
@@ -107,6 +123,7 @@ app.get('/api/users', function(req, res) {
                 query: {
                     string: username, 
                     similar,
+                    privileges,
                 },
                 results,
             }
@@ -116,6 +133,7 @@ app.get('/api/users', function(req, res) {
                 query: {
                     string: username, 
                     similar,
+                    privileges,
                 },
             }
         }
@@ -127,24 +145,24 @@ app.get('/api/users', function(req, res) {
 app.get('/api/parts', function(req, res) {
     const {name, similar} = req.query;
     let QUERY;
-
+    
     if (!req.session.userID) {
-        res.send({
+        return res.send({
             successful: false, 
-            notAuthorised: true,
+            msg: 'Not authorised',
         })
-        return false;
     }
 
     if (name === undefined) {
         QUERY = 'SELECT * FROM parts';
-    } else if (similar){
-        QUERY = `SELECT * FROM parts WHERE name LIKE '${name}%'`;
     } else {
-        QUERY = `SELECT * FROM parts WHERE name = '${name}'`;
+        if (similar) {
+            QUERY = `SELECT * FROM parts WHERE name LIKE '${name}%'`;
+        } else {
+            QUERY = `SELECT * FROM parts WHERE name = '${name}'`;
+        }
     }
 
-    let response;
     return db.query(QUERY, (err, results) => {
         if (err) {
             console.log(err)

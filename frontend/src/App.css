@@ -96,12 +96,6 @@
   border-bottom: 1px solid white
 }
 
-.AppButton {
-  background-color: grey !important;
-  border-color: grey !important;
-  color: white;
-}
-
 .FormLabel {
   font-size: 20px;
   padding-top: 0px;
@@ -190,4 +184,18 @@
 .hidden-button-p-parent:hover .hidden-button-parent .hidden-button {
   transform: translate(0, 0);
   transition: transform 0.5s ease;
+}
+
+.AppButton {
+  background-color: grey !important;
+  border-color: grey !important;
+  color: white;
+}
+
+.page-item .page-link {
+  visibility: visible;
+}
+
+.page-item.disabled .page-link {
+  visibility: hidden;
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import AlertPopup from '../AlertPopup'
 import {Table, Form, Container, Col, Button, ButtonGroup, Pagination, Modal} from 'react-bootstrap';
 import Loading from '../Loading'
+import UserStore from '../../store/UserStore'
 
 class DBTable extends React.Component{
   constructor(props) {
@@ -16,6 +17,7 @@ class DBTable extends React.Component{
         variant: null,
       },
       search: '',
+      searchSimilar: false,
       maxSearchLength: 255,
       editColumn: null,
       editRow: null,
@@ -115,7 +117,9 @@ class DBTable extends React.Component{
       <div className="SearchBar">
         <Form inline noValidate 
         validated={isValidated} 
-        onSubmit={!buttonDisabled ? (e) => this.search(e) : null}
+
+        // Default to normal search
+        onSubmit={!buttonDisabled ? (e) => this.searchE(e, false) : null}
         >    
           <Container fluid>
                 <Form.Row 
@@ -132,30 +136,33 @@ class DBTable extends React.Component{
                   />
                 </Col>
                 <Col xs="auto" lg="4">
-                  <ButtonGroup>
-                  <Button
-                    type="submit" 
-                    className="AppButton mb-2 mr-sm-2"
-                    onClick={!buttonDisabled ? (e) => this.search(e, false) : null}
-                    >
-                      Search
-                  </Button>
-                  <Button
-                    type="submit" 
-                    className="AppButton mb-2 mr-sm-2"
-                    onClick={!buttonDisabled ? (e) => this.search(e, true) : null}
-                    >
-                      Search Similar
-                  </Button>
-                  <Button
-                    type="submit" 
-                    className="AppButton mb-2 mr-sm-2"
-                    style={{paddingRight: "20px"}}
-                    onClick={!buttonDisabled ? (e) => this.searchReset(e) : null}
-                    >
-                      Reset
-                  </Button>
-                  </ButtonGroup>
+                  
+                  <div className="btn-grey">
+                    <ButtonGroup>
+                    <Button
+                      type="submit" 
+                      className="AppButton mb-2 mr-sm-2"
+                      onClick={!buttonDisabled ? (e) => this.searchE(e, false) : null}
+                      >
+                        Search
+                    </Button>
+                    <Button
+                      type="submit" 
+                      className="AppButton mb-2 mr-sm-2"
+                      onClick={!buttonDisabled ? (e) => this.searchE(e, true) : null}
+                      >
+                        Search Similar
+                    </Button>
+                    <Button
+                      type="submit" 
+                      className="AppButton mb-2 mr-sm-2"
+                      style={{paddingRight: "20px"}}
+                      onClick={!buttonDisabled ? (e) => this.searchReset(e) : null}
+                      >
+                        Reset
+                    </Button>
+                    </ButtonGroup>
+                  </div>
                 </Col>
             </Form.Row>
           
@@ -170,10 +177,6 @@ class DBTable extends React.Component{
     )
   }
 
-  confirmDelete(e) {
-    console.log('Use this to confirm deletes')
-  }
-
   renderTableHeadings() {
     const {entries} = this.state
     const showColumns = this.props.showColumns
@@ -181,10 +184,14 @@ class DBTable extends React.Component{
     if (entries && entries.length > 0 && showColumns && showColumns.length > 0) {
         return (
             <tr className="hidden-button-parent">
-              <th key={-1} className="hidden-button">
-                <Button onClick={(e) => this.confirmDelete(e)} className="AppButton" size="sm">Confirm</Button>
-              </th>
-
+              {
+                (UserStore.privileges > 0) ?
+                <th key={-1}>
+                  Delete
+                </th>
+                :
+                null
+              }
               {
                   Object.keys(entries[0]).map(function(key, index) {
                         if (showColumns.includes(key)) {
@@ -212,6 +219,12 @@ class DBTable extends React.Component{
     this.setState({editRow: this.state.entries[index]})
     this.setState({editColumn: key})
     this.setState({lastRow: e.currentTarget.parentElement})
+  }
+
+  resetLastRowStyle() {
+    if (this.state.lastRow) {
+      this.state.lastRow.setAttribute("style", "");
+    }
   }
 
   // Only called if successful
@@ -274,16 +287,24 @@ class DBTable extends React.Component{
         arrEntries.push(rows)
       }
 
+      let button;
+      if (UserStore.privileges > 0) {
+        button = (
+          <td className="hidden-button" >
+            <Button onClick={(e) => this.deleteByName(e)} className="AppButton" size="sm">Delete</Button>
+          </td>
+        )
+      } else {
+        button = null;
+      }
+
       let arrEntriesDivided = []
       for (i = 0; i < arrEntries.length; i++) {
         
         arrEntriesDivided.push(
           <tr key={i}className="hidden-button-parent" >
-              <td className="hidden-button" >
-              <Button onClick={(e) => this.deleteByName(e)} className="AppButton" size="sm">Delete</Button>
-              </td>
+              {button}
             {arrEntries[i]}
-
           </tr>
         )
       }
@@ -319,7 +340,8 @@ class DBTable extends React.Component{
         page = Math.floor(this.state.entries.length / this.state.entriesPerPage);
         break;
     }
-
+    
+    this.resetLastRowStyle();  // temp fix to styling "ghosting" on other pages
     this.setState({page});
   }
 

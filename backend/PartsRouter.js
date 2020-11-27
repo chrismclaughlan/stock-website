@@ -1,5 +1,31 @@
-const bcrypt = require('bcrypt');
-const { json } = require('express');
+const authoriseUser = (req, res) => {
+    if (!req.session.userID) {
+        res.json({
+            successful: false, 
+            msg: 'Not authorised',
+        })
+        return false;
+    }
+
+    return true;
+}
+
+const authoriseAdmin = (req, res) => {
+
+    if (!req.session.userID) {
+        res.json({
+            successful: false, 
+            msg: 'Not authorised',
+        })
+        return false;
+    }
+
+    // TODO
+    // const QUERY = `SELECT username FROM users WHERE id = '${req.session.userID}'`;
+    // db.query()
+
+    return true;
+}
 
 const getQuantityNameFromPart = (part, res) => {
     let {name, quantity} = part;
@@ -126,7 +152,12 @@ class PartsRouter {
 
     update(app, db) {
         app.post('/api/parts/update', (req, res) => {
-            
+
+
+            if (!authoriseUser(req, res)) {
+                return false;
+            }
+
             const parts = getPartsFromReq(req, res);
             if (!parts) {
                 return false;
@@ -134,19 +165,40 @@ class PartsRouter {
 
             let part = parts[0];
             part.quantity = Math.abs(part.quantity);
-            const cols = getColsFromPart(parts[0], res);
+
+            let query, cols;
+            if (authoriseAdmin(req, res)) {
+                cols = getColsFromPart(part, res);
+                query = 'UPDATE parts SET quantity = quantity - ?, bookcase = ?, shelf = ? WHERE name = ?';
+            } else {
+                cols = getQuantityNameFromPart(part, res);
+                query = 'UPDATE parts SET quantity = quantity - ? WHERE name = ?';
+            }
+
             if (!cols) {
                 return false;
             }
+
+            const result = queryParts(query, cols, 'updating', parts, db, res);
             
-            const query = 'UPDATE parts SET quantity = quantity - ?, bookcase = ?, shelf = ? WHERE name = ?';
-            return queryParts(query, cols, 'updating', parts, db, res);
+            if (!result) {
+                console.log(`Failed to update part: Query=${query}`);
+                return false;
+            } else {
+                console.log(`Successfully updated part: Query=${query}`);
+                return true;
+            }
         });
     }
 
+    // Admin
     add(app, db) {
         app.post('/api/parts/add', (req, res) => {
-            
+
+            if (!authoriseAdmin(req, res)) {
+                return false;
+            }
+
             const parts = getPartsFromReq(req, res);
             if (!parts) {
                 return false;
@@ -170,8 +222,13 @@ class PartsRouter {
     //     // Todo: Iterate over list of parts to delete... from remove()
     // }
     
+    // Admin
     remove(app, db) {
         app.post('/api/parts/remove', (req, res) => {
+
+            if (!authoriseAdmin(req, res)) {
+                return false;
+            }
 
             const parts = getPartsFromReq(req, res);
             if (!parts) {

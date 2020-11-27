@@ -31,6 +31,31 @@ const getUsernameFromUser = (user, res) => {
     return [username];
 }
 
+const getPasswordUserIDFromUser = (user, req, res) => {
+    let {password} = user;
+
+    if (password === undefined || !(password.length > 0)) {
+        res.json({
+            success: false,
+            msg: 'Error parsing request: Password of user not defined'
+        })
+        return null;
+    }
+
+    if (!req.session || !req.session.userID) {
+        res.send({
+            successful: false, 
+            msg: 'Not authorised',
+        })
+
+        return null;
+    }
+
+    password = bcrypt.hashSync(password, 9);
+
+    return [password, req.session.userID];
+}
+
 const getPasswordUsernameFromUser = (user, res) => {
     let {username, password} = user;
 
@@ -102,9 +127,29 @@ const queryUsers = (query, cols, verbMsg, users, db, res) => {
 class UsersRouter {
 
     constructor(app, db) {
-        this.add(app, db)
-        this.remove(app, db)
-        this.update(app, db)
+        this.add(app, db);
+        this.remove(app, db);
+        this.update(app, db);
+        this.changePassword(app, db);
+    }
+
+    changePassword(app, db) {
+        app.post('/api/users/change-password', (req, res) => {
+            
+            const users = getUsersFromReq(req, res);
+            if (!users) {
+                return false;
+            }
+
+            const user = users[0];
+            const cols = getPasswordUserIDFromUser(user, req, res);
+            if (!cols) {
+                return false;
+            }
+            
+            const query = 'UPDATE users SET password = ? WHERE id = ?';
+            return queryUsers(query, cols, 'updating', users, db, res);
+        });
     }
 
     update(app, db) {

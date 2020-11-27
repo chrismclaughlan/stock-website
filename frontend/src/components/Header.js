@@ -1,11 +1,13 @@
 
 import React from 'react';
 import {Navbar, Nav, Dropdown, DropdownButton} from 'react-bootstrap';
+import {observer} from 'mobx-react';
+import UserStore from '../store/UserStore';
 
 class Header extends React.Component{
 
   render() {
-
+    console.log(UserStore.privileges)
     return (
         <div className="Header">
           <Navbar bg="dark" variant="dark" expand="lg">
@@ -24,7 +26,15 @@ class Header extends React.Component{
                 <Nav className="mr-auto">
                   <Navbar.Brand href="/">Home</Navbar.Brand>
                   <Nav.Link href="/mylogs">My Logs</Nav.Link>
-                  <Nav.Link href="/admin-panel">Admin Panel</Nav.Link>
+                  {
+                    UserStore.privileges > 0 ?
+                      <Nav.Link href="/admin-panel">Admin Panel</Nav.Link>
+                      :
+                      null
+                  }
+                  
+
+
                   {/* <NavDropdown title="Admin Panel" id="basic-nav-dropdown">
                       <NavDropdown.Item href="/admin-panel">General</NavDropdown.Item>
                       <NavDropdown.Divider />
@@ -35,7 +45,7 @@ class Header extends React.Component{
               </Nav>            
             
                 <Navbar.Text>
-                  Signed in as: <a href="/account">{this.props.username}</a>
+                  Signed in as: <a href="/account">{UserStore.username}</a>
                 </Navbar.Text>
 
                 &nbsp;&nbsp;&nbsp;&nbsp;
@@ -46,7 +56,7 @@ class Header extends React.Component{
                   id="dropdown-menu-align-right"
                   variant="isvisible"
                 >
-                  <Dropdown.Item href="/admin-panel">Account</Dropdown.Item>
+                  <Dropdown.Item href="/account">Account</Dropdown.Item>
                   <Dropdown.Divider />
                   <Dropdown.Item as="button"  onClick={this.props.onLogout}>Logout</Dropdown.Item>
                 </DropdownButton>
@@ -57,4 +67,4 @@ class Header extends React.Component{
   }
 }
 
-export default Header;
+export default observer(Header);

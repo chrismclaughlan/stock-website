@@ -1,4 +1,5 @@
 import DBPartModify from './DBPartModify'
+import UserStore from '../../store/UserStore'
 
 class DBPartUpdate extends DBPartModify { 
 
@@ -67,6 +68,7 @@ class DBPartUpdate extends DBPartModify {
 
   render() {
     // TODO If admin allow to update bookcase and shelf; otherwise disable them
+    const isAdmin = (UserStore.privileges > 0);
     const properties = {
       name: {
         disable: true, placeholder: 'Name'
@@ -75,10 +77,10 @@ class DBPartUpdate extends DBPartModify {
         disable: false, placeholder: 'Remove'
       },
       bookcase: {
-        disable: false, placeholder: 'Bookcase'
+        disable: !isAdmin, placeholder: 'Bookcase'
       },
       shelf: {
-        disable: false, placeholder: 'Shelf'
+        disable: !isAdmin, placeholder: 'Shelf'
       },
     }
     return super.render('Update Part', properties);

@@ -4,8 +4,11 @@ import AdminPanelUsers from './AdminPanelUsers'
 import AdminPanelParts from './AdminPanelParts'
 import AdminPanelLogs from './AdminPanelLogs'
 import AlertPopup from '../AlertPopup'
+import UserStore from '../../store/UserStore'
+import {observer} from 'mobx-react';
 
-const tabs = ['Users', 'Parts', 'Logs']
+const tabs = ['Users', 'Parts', 'Logs'];
+const tabsUsers = ['Existing', 'New'];
 
 class AdminPanel extends React.Component{
 
@@ -27,7 +30,7 @@ class AdminPanel extends React.Component{
 
   render() {
 
-    if (false) {
+    if (UserStore.privileges <= 0) {
         return (
             <div className="AdminPanel">
                 <p>Not authorised</p>
@@ -51,12 +54,6 @@ class AdminPanel extends React.Component{
         case "Logs":
             content = <AdminPanelLogs />
             break;
-        default:
-            error = {
-                message: `Error loading tab '${this.state.tab}'`,
-                variant: "warning",
-            }
-            break;
     }
 
     return (
@@ -70,7 +67,7 @@ class AdminPanel extends React.Component{
                     onSelect={(t) => this.handleSelectTab(t)}
                 >
                     {
-                        tabs.map(function(t){
+                        tabs.map(function(t) {
                             return (
                                 <Nav.Link key={t} eventKey={t}>{t}</Nav.Link>
                             )
@@ -89,4 +86,4 @@ class AdminPanel extends React.Component{
   }
 }
 
-export default AdminPanel;
+export default observer(AdminPanel);

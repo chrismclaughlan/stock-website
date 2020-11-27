@@ -8,12 +8,19 @@ const QUERY_SIMILAR = 'similar=';
 
 class StockTable extends DBTable{
 
-  async componentDidMount() {
-    this.query(QUERY_ALL)
+  componentDidMount() {
+    this.search();
   }
 
-  async search(e, similar) {
-    e.preventDefault()
+  search(similar) {
+    if (similar === undefined) {
+      similar = this.state.searchSimilar;
+    } else {
+      this.setState({
+        searchSimilar: similar,
+      })
+    }
+
     let searchString = this.state.search;
 
     searchString = searchString.toLowerCase();
@@ -25,6 +32,12 @@ class StockTable extends DBTable{
     } else {
       this.query(`${QUERY_ALL}?${QUERY_NAME + searchString}`)
     }
+  }
+
+  searchE(e, similar) {
+    e.preventDefault();
+    this.resetLastRowStyle();
+    this.search(similar);
   };
 
   async callRemove() {

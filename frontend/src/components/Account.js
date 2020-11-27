@@ -1,11 +1,13 @@
 import React from 'react';
+import DBUserChangePassword from './DBModify/DBUserChangePassword'
+import UserStore from '../store/UserStore'
 
 class Account extends React.Component{
 
   render() {
       return (
           <div className="Account">
-            <p>Account</p>
+            <DBUserChangePassword username={UserStore.username}/>
           </div>
       )
   }
