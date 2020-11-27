@@ -9,7 +9,7 @@ const QUERY_SIMILAR = 'similar=';
 class UsersTable extends DBTable{
   
   componentDidMount() {
-    this.query(QUERY_ALL)
+    this.search();
   }
 
   search(similar) {
@@ -34,10 +34,10 @@ class UsersTable extends DBTable{
     }
   }
 
-  searchExact(e, similar) {
+  searchE(e, similar) {
     e.preventDefault();
     this.resetLastRowStyle();
-    this.search();
+    this.search(similar);
   };
 
   async callRemove() {
@@ -68,7 +68,7 @@ class UsersTable extends DBTable{
       }
       else if (result && result.success === false)
       {
-        this.setState({error: {message: `Failed to deltete ${username}`, variant: 'warning'}});
+        this.setState({error: {message: `Failed to delete ${username}`, variant: 'warning'}});
       }
 
     } catch(e) {

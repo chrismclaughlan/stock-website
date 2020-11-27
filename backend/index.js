@@ -8,9 +8,12 @@ const MySQLStore = require('express-mysql-session')(session);
 const SessionRouter = require('./SessionRouter');
 const PartsRouter = require('./PartsRouter');
 const UsersRouter = require('./UsersRouter');
+const utils = require('./Utils');
+const dbManagement = require('./DBManagement');
 
 const result = dotenv.config();
 if (result.error) {
+    utils.printMessage('index.js', 'DOTENV ERROR', result.error, 'reading .config()');
     throw result.error;
 }
 
@@ -31,7 +34,7 @@ const db = mysql.createConnection({
 db.connect(function(err) {
     if (err)
     {
-        console.log(`Error connecting to database: ${err}`);
+        utils.printMessage('index.js', 'MYSQL ERROR', err, 'connecting');
         throw err;
     }
 });
@@ -64,141 +67,91 @@ app.get('/', function(req, res) {
 app.get('/api/users', function(req, res) {
     let {username, similar, privileges} = req.query
 
-    if (!req.session.userID) {
-        res.send({
-            successful: false, 
-            msg: 'Not authorised',
-        })
-
+    if (!utils.authoriseUser(req, res)) {
         return false;
     }
 
     // Check if admin?
 
-    let cols;
-    let QUERY = 'SELECT username FROM users';
+    let cols = [];
+    let query = 'SELECT username FROM users';
 
     if (username !== undefined) {
-        QUERY = QUERY + ' WHERE username';
+        query = query + ' WHERE username';
         
         if (similar) {
-            QUERY = QUERY + ` LIKE '${username}%'`;
+            query = query + ` LIKE ?`;
+            cols.push(username + '%');
         } else {
-            QUERY = QUERY + ` = '${username}'`;
+            query = query + ` = ?`;
+            cols.push(username);
         }
         
         if (privileges !== undefined) {
-            QUERY = QUERY + ` AND privileges >= '${privileges}'`;
+            query = query + ` AND privileges >= ?`;
+            cols.push(privileges);
         }
     } else {
         
         username = '';
 
         if (privileges !== undefined) {
-            QUERY = QUERY + ` WHERE privileges >= '${privileges}'`;
+            query = query + ` WHERE privileges >= ?`;
+            cols.push(privileges);
         }
     }
 
-    console.log(QUERY)
-
-    let response
-    db.query(QUERY, cols, function(err, results) {
-        if (err) {
-            console.log(err)
-            return res.send({
-                successful: false,
-                query: {
-                    string: username, 
-                    similar,
-                    privileges,
-                },
-                error: err,
-            })
-        }
-
-        if (results && results.length > 0)
-        {
-            response = {
-                successful: true,
-                query: {
-                    string: username, 
-                    similar,
-                    privileges,
-                },
-                results,
-            }
-        } else {
-            response = {
-                successful: false,
-                query: {
-                    string: username, 
-                    similar,
-                    privileges,
-                },
-            }
-        }
-
-        return res.send(response)
-    });
+    queryReq =  {
+        string: username, 
+        similar,
+        privileges,
+    },
+    dbManagement.getUsers(query, cols, queryReq, db, res);
 })
 
 app.get('/api/parts', function(req, res) {
     const {name, similar} = req.query;
-    let QUERY;
     
-    if (!req.session.userID) {
-        return res.send({
-            successful: false, 
-            msg: 'Not authorised',
-        })
+    if (!utils.authoriseUser(req, res)) {
+        return false;
     }
 
+    let query;
+    let cols = []
     if (name === undefined) {
-        QUERY = 'SELECT * FROM parts';
+        query = 'SELECT * FROM parts';
     } else {
         if (similar) {
-            QUERY = `SELECT * FROM parts WHERE name LIKE '${name}%'`;
+            query = `SELECT * FROM parts WHERE name LIKE ?`;
+            cols.push(name + '%');
         } else {
-            QUERY = `SELECT * FROM parts WHERE name = '${name}'`;
+            query = `SELECT * FROM parts WHERE name = ?`;
+            cols.push(name);
         }
     }
+    
+    const queryReq = {
+        string: name,
+        similar,
+    }
+    dbManagement.getParts(query, cols, queryReq, db, res);
+});
 
-    return db.query(QUERY, (err, results) => {
-        if (err) {
-            console.log(err)
-            res.send({
-                successful: false,
-                error: err,
-            })
-            return false;
-        }
+//TODO temp
+app.get('/api/logs', function(req, res) {
+    const similar = null;
 
-        if (results && results.length > 0)
-        {
-            res.send({
-                successful: true,
-                query: {
-                    string: name, 
-                    similar,
-                },
-                results,
-            });
-            return true;
-            
-        } else {
-            res.send({
-                successful: false,
-                query: {
-                    string: name, 
-                    similar,
-                },
-            });
-            return false;
-        }
-    });
+    let cols = [];
+    let query = 'SELECT * FROM part_logs';
+
+    const queryReq = {
+        string: '',
+        similar,
+    }
+    dbManagement.getLogs(query, cols, queryReq, db, res);
 });
 
 const port = 4000;
 app.listen(port, () => {
-    console.log(`Listening on port ${port}`)
+    utils.printMessage('index.js', 'READY', `Listening on http://localhost:${port}`)
 });

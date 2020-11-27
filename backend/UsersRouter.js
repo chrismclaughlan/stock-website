@@ -1,128 +1,6 @@
-const bcrypt = require('bcrypt');
 const { json } = require('express');
-
-const getUsersFromReq = (req, res) => {
-    const {users} = req.body;
-
-    if (users === undefined || !(users.length > 0)) {
-        res.json({
-            success: false,
-            msg: 'Error parsing request: users not defined'
-        })
-        return null;
-    }
-
-    return users;
-}
-
-const getUsernameFromUser = (user, res) => {
-    let {username} = user;
-
-    if (username === undefined || !(username.length > 0)) {
-        res.json({
-            success: false,
-            msg: 'Error parsing request: Username of user not defined'
-        })
-        return null;
-    }
-
-    username = username.trim();
-    username = username.toLowerCase()
-    return [username];
-}
-
-const getPasswordUserIDFromUser = (user, req, res) => {
-    let {password} = user;
-
-    if (password === undefined || !(password.length > 0)) {
-        res.json({
-            success: false,
-            msg: 'Error parsing request: Password of user not defined'
-        })
-        return null;
-    }
-
-    if (!req.session || !req.session.userID) {
-        res.send({
-            successful: false, 
-            msg: 'Not authorised',
-        })
-
-        return null;
-    }
-
-    password = bcrypt.hashSync(password, 9);
-
-    return [password, req.session.userID];
-}
-
-const getPasswordUsernameFromUser = (user, res) => {
-    let {username, password} = user;
-
-    if (username === undefined || !(username.length > 0) || password === undefined || !(password.length > 0)) {
-        res.json({
-            success: false,
-            msg: 'Error parsing request: Username or password of user not defined'
-        })
-        return null;
-    }
-
-    username = username.trim();
-    username = username.toLowerCase()
-
-    password = bcrypt.hashSync(password, 9);
-
-    return [password, username];
-}
-
-const queryUsers = (query, cols, verbMsg, users, db, res) => {
-    return db.query(query, cols, (err, data, fields) => {
-        if (err) {
-            let message = '';
-
-            switch(err.errno) {
-                case 1406:
-                    message = 'Data too long'; break;
-                
-                case 1366:
-                    message = 'Incorrect value(s) for column(s)'; break;
-
-                case 1062:
-                    message = 'Part already exists'; break;
-
-                case 1690:
-                    message = 'Value(s) out of range'; break;
-                
-                default:
-                    message = err.code; break;
-            }
-
-            console.log(`Error ${verbMsg} user: {Errno: ${err.errno}. Code: ${err.code}}`)
-
-            res.json({
-                success: false,
-                query: users,
-                msg: `Error ${verbMsg} user: ${message}`
-            })
-            return false;
-        }
-
-        if (data.affectedRows <= 0) {
-            res.json({
-                success: false,
-                query: users,
-                msg: `Error ${verbMsg} user: User doesn't exist`
-            })
-            return false;
-        }
-
-        res.json({
-            success: true,
-            query: users,
-        })
-        return true;
-    });
-}
+const dbManagement = require('./DBManagement');
+const utils = require('./Utils')
 
 class UsersRouter {
 
@@ -136,57 +14,57 @@ class UsersRouter {
     changePassword(app, db) {
         app.post('/api/users/change-password', (req, res) => {
             
-            const users = getUsersFromReq(req, res);
+            const users = utils.getUsersFromReq(req, res);
             if (!users) {
                 return false;
             }
 
             const user = users[0];
-            const cols = getPasswordUserIDFromUser(user, req, res);
+            const cols = utils.getPasswordUserIDFromUser(user, req, res);
             if (!cols) {
                 return false;
             }
             
             const query = 'UPDATE users SET password = ? WHERE id = ?';
-            return queryUsers(query, cols, 'updating', users, db, res);
+            dbManagement.postUsers(query, cols, 'changing password', users, db, res);
         });
     }
 
     update(app, db) {
         app.post('/api/users/update', (req, res) => {
             
-            const users = getUsersFromReq(req, res);
+            const users = utils.getUsersFromReq(req, res);
             if (!users) {
                 return false;
             }
 
             const user = users[0];
-            const cols = getPasswordUsernameFromUser(user, res);
+            const cols = utils.getPasswordUsernameFromUser(user, res);
             if (!cols) {
                 return false;
             }
             
             const query = 'UPDATE users SET password = ? WHERE username = ?';
-            return queryUsers(query, cols, 'updating', users, db, res);
+            dbManagement.postUsers(query, cols, 'updating', users, db, res);
         });
     }
 
     add(app, db) {
         app.post('/api/users/add', (req, res) => {
             
-            const users = getUsersFromReq(req, res);
+            const users = utils.getUsersFromReq(req, res);
             if (!users) {
                 return false;
             }
 
             const user = users[0]
-            const cols = getPasswordUsernameFromUser(user, res);
+            const cols = utils.getPasswordUsernameFromUser(user, res);
             if (!cols) {
                 return false;
             }
 
             const query = 'INSERT INTO users(password, username) VALUES(?, ?)';
-            return queryUsers(query, cols, 'adding', users, db, res);
+            dbManagement.postUsers(query, cols, 'adding', users, db, res);
         });
     }
 
@@ -201,19 +79,19 @@ class UsersRouter {
     remove(app, db) {
         app.post('/api/users/remove', (req, res) => {
 
-            const users = getUsersFromReq(req, res);
+            const users = utils.getUsersFromReq(req, res);
             if (!users) {
                 return false;
             }
 
             const user = users[0]
-            const cols = getUsernameFromUser(user, res);
+            const cols = utils.getUsernameFromUser(user, res);
             if (!cols) {
                 return false;
             }
 
             const query = 'DELETE FROM users WHERE username = ?';
-            return queryUsers(query, cols, 'deleting', users, db, res);
+            dbManagement.postUsers(query, cols, 'deleting', users, db, res);
 
         });
     }

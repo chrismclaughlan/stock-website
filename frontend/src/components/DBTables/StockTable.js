@@ -68,7 +68,7 @@ class StockTable extends DBTable{
       }
       else if (result && result.success === false)
       {
-        this.setState({error: {message: `Failed to deltete ${partName}`, variant: 'warning'}});
+        this.setState({error: {message: `Failed to delete ${partName}`, variant: 'warning'}});
       }
 
     } catch(e) {
