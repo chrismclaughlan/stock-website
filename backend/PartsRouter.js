@@ -25,20 +25,74 @@ class PartsRouter {
             let part = parts[0];
             part.quantity = Math.abs(part.quantity);
 
-            let query, cols;
-            if (utils.authoriseAdmin(req, res)) {
-                cols = utils.getColsFromPart(part, res);
-                query = 'UPDATE parts SET quantity = quantity - ?, bookcase = ?, shelf = ? WHERE name = ?';
-            } else {
-                cols = utils.getQuantityNameFromPart(part, res);
-                query = 'UPDATE parts SET quantity = quantity - ? WHERE name = ?';
-            }
-
-            if (!cols) {
+            const name = utils.getNameFromPart(part, res);
+            if (!name) {
                 return false;
             }
 
-            dbManagement.postParts(query, cols, 'updating', parts, db, res);
+            let cols = [];
+            let query = '';
+            const {quantity, bookcase, shelf} = part;
+            if (utils.authoriseAdmin(req, res)) {
+
+                query = 'UPDATE parts SET ';
+    
+                if (quantity) {
+                    query += 'quantity = quantity - ?';
+                    cols.push(quantity);
+                }
+    
+                if (bookcase) {
+                    if (cols.length > 0) {
+                        query += ', '
+                    }
+                    query += 'bookcase = ?';
+                    cols.push(bookcase);
+                }
+    
+                if (shelf) {
+                    if (cols.length > 0) {
+                        query += ', '
+                    }
+                    query += 'shelf = ?';
+                    cols.push(shelf);
+                }
+
+                if (cols.length === 0) {
+                    res.json({
+                        success: false,
+                        msg: 'Error parsing request: Suitable element(s) of part not defined'
+                    })
+                    return false;
+                }
+
+                query += ' WHERE name = ?'
+                cols.push(name);
+
+            } else {
+                query = 'UPDATE parts SET quantity = quantity - ? WHERE name = ?';
+                
+                cols = utils.getQuantityNameFromPart(part, res);
+                if (!cols) {
+                    return false;
+                }
+            }            
+
+            // action, partName, partQuantity, partBookcase, partShelf
+            const action = 'updating';
+            const values = {
+                action,
+                name,
+                quantity,
+                bookcase,
+                shelf,
+            }
+            dbManagement.postParts(query, cols, action, part, db, res, req, values);
+            
+            // query = `INSERT INTO stock.parts_logs `
+            
+            // query = `INSERT INTO stock.parts_logs(user_id, username, action, name, bookcase) VALUES(?, ?, ?, ?, ?)`;
+            // cols = [req.userID, "chris", "update", "dontdelete", 20];
         });
     }
 
@@ -55,13 +109,24 @@ class PartsRouter {
                 return false;
             }
 
-            const cols = utils.getColsFromPart(parts[0], res);
-            if (!cols) {
-                return false;
-            }
+            const part = parts[0];
+
+            // const cols = utils.getColsFromPart(part, res);
+            // if (!cols) {
+            //     return false;
+            // }
             
-            const query = 'INSERT INTO parts(quantity, bookcase, shelf, name) VALUES(?, ?, ?, ?)';
-            dbManagement.postParts(query, cols, 'adding', parts, db, res);
+            // const query = 'INSERT INTO parts(quantity, bookcase, shelf, name) VALUES(?, ?, ?, ?)';
+
+            const action = 'adding';
+            const values = {
+                action,
+                name: part.name,
+                quantity: part.quantity,
+                bookcase: part.bookcase,
+                shelf: part.shelf,
+            }
+            dbManagement.postParts(query, cols, action, part, db, res, req, values);
         });
     }
 
@@ -78,7 +143,9 @@ class PartsRouter {
                 return false;
             }
 
-            const name = utils.getNameFromPart(parts[0], res);
+            const part = parts[0];
+
+            const name = utils.getNameFromPart(part, res);
             if (!name) {
                 return false;
             }
@@ -86,7 +153,15 @@ class PartsRouter {
             const cols = [name];
             
             const query = 'DELETE FROM parts WHERE name = ?';
-            dbManagement.postParts(query, cols, 'removing', parts, db, res);
+
+            const action = 'deleting';
+            const values = {
+                action,
+                name,
+            }
+            dbManagement.postParts(query, cols, action, part, db, res, req, values);
+
+            //dbManagement.logDB();
         });
     }
 }

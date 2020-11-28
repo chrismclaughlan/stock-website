@@ -30,6 +30,70 @@ class DBTable extends React.Component{
     }
   }
   
+  componentDidMount() {
+    this.search();
+  }
+
+  searchAPI(similar, api_query_all, api_query_string, api_query_similar) {
+    if (similar === undefined) {
+      similar = this.state.searchSimilar;
+    } else {
+      this.setState({
+        searchSimilar: similar,
+      })
+    }
+
+    let searchString = this.state.search;
+    searchString = searchString.toLowerCase();
+
+    if (searchString.length === 0) {
+      this.query(api_query_all)
+    } else if (similar) {
+      this.query(`${api_query_all}?${api_query_string + searchString}&${api_query_similar + 'true'}`)
+    } else {
+      this.query(`${api_query_all}?${api_query_string + searchString}`)
+    }
+  }
+  
+  searchE(e, similar) {
+    e.preventDefault();
+    this.resetLastRowStyle();
+    this.search(similar);
+  };
+
+  async callRemove(url, data) {
+    const nameToDelete = this.state.nameToDelete;
+    if (!nameToDelete) {
+      console.log('no name to delete')
+      return;
+    }
+
+    try {
+
+      let res = await fetch(url, {
+        method: 'post',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+
+      let result = await res.json();
+      if (result && result.success) {
+        this.setState({error: {message: `Successfully deleted ${nameToDelete}`, variant: 'success'}});
+        this.componentDidMount();
+      }
+      else if (result && result.success === false)
+      {
+        this.setState({error: {message: `Failed to delete ${nameToDelete}`, variant: 'warning'}});
+      }
+
+    } catch(e) {
+      this.setState({error: {message: `Error delteting ${nameToDelete}`, variant: 'danger'}});
+    }
+  }
+
   query(url) {
     this.setState({error: {message: null, variant: null}})
 
@@ -38,7 +102,6 @@ class DBTable extends React.Component{
     .then(
       (result) => {
         if (result.successful) {
-          console.log(result)
           this.setState({
             isLoading: false, 
             entries: result.results,
@@ -48,9 +111,11 @@ class DBTable extends React.Component{
           
           let reason;
           if (result.notAuthorised) {
-            reason = 'Not authorised'
+            reason = 'Not authorised';
+          } else if (result.query) {
+            reason = `Could not find  ${result.query.string}  in database`;
           } else {
-            reason = `Could not find  ${result.query.string}  in database`
+            reason = 'Could not find any entries in database';
           }
 
           this.setState({
@@ -110,7 +175,7 @@ class DBTable extends React.Component{
     )
   }
 
-  renderSearchBar() {
+  renderSearchBar(placeholder) {
     let isValidated = false
     let buttonDisabled = false
     return (
@@ -129,7 +194,7 @@ class DBTable extends React.Component{
                 <Form.Control
                   required
                   type="text"
-                  placeholder="Search"
+                  placeholder={placeholder}
                   value={this.state.search}
                   style={{width: "100%"}}
                   onChange={(val) => this.setSearchValue(val.target.value)}
@@ -170,9 +235,6 @@ class DBTable extends React.Component{
 
         </Container>
         </Form>
-        
-        <AlertPopup error={this.state.error}/>
-        {this.state.isLoading ? <Loading message="Loading entries..."/> : null}
       </div>
     )
   }
@@ -346,11 +408,17 @@ class DBTable extends React.Component{
   }
 
   renderTable() {
-    if (!this.state.entries) {
-      return null;
+    if (this.state.isLoading) {
+        return (
+          <>
+            <Loading message="Loading entries..."/>
+            <AlertPopup error={this.state.error}/>
+          </>
+        )
+    } else if (!this.state.entries) {
+      return <AlertPopup error={this.state.error}/>;
     }
 
-    const first = 0;
     const last = Math.floor(this.state.entries.length / this.state.entriesPerPage);
 
     return (
@@ -393,7 +461,7 @@ class DBTable extends React.Component{
             </Modal.Footer>
           </Modal>
           
-          {!this.state.entries ? <Loading message="Loading results"/> : null}
+          <AlertPopup error={this.state.error}/>
         </div>
       </div>
     )

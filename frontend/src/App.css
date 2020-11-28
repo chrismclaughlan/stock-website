@@ -199,3 +199,7 @@
 .page-item.disabled .page-link {
   visibility: hidden;
 }
+
+.DBTable {
+  padding-top: 20px;
+}

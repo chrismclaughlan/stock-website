@@ -8,10 +8,11 @@ import './App.css';
 
 import 'bootstrap/dist/css/bootstrap.min.css'
 import StockTable from './components/DBTables/StockTable';
+import LogsTable from './components/DBTables/LogsTable'
+import MyLogsTable from './components/DBTables/MyLogsTable'
 
 import Header from './components/Header'
 import Footer from './components/Footer'
-import MyLogs from './components/MyLogs'
 import Account from './components/Account'
 import AdminPanel from './components/AdminPanel/AdminPanel'
 
@@ -132,7 +133,9 @@ class App extends React.Component{
             </Route>
 
             <Route exact path="/mylogs">
-              <MyLogs />
+              <div className="container">
+                <MyLogsTable showColumns={["id", "user_username", "action", "part_name", "part_quantity", "part_bookcase", "part_shelf", "date"]}/>
+              </div>
             </Route>
 
             <Route exact path="/account">

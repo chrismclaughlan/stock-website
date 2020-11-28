@@ -1,12 +1,26 @@
 
 const bcrypt = require('bcrypt');
 
-const printMessage = (area, type, content, action) => {
+const printMessage = (area, type, content, action, query, cols) => {
     console.log(`[${area}] - ${type}${(action !== undefined) ? ` while ${action}` : ''} - ${content}`)
+    if (query) {
+        console.log(`SQL Query - ${query}`);
+    }
+    if (cols) {
+        console.log(`SQL Cols  - ${cols}`);
+    }
+}
+
+const isUser = (req) => {
+    return (req.session.userID !== undefined);
+}
+
+const isAdmin = (req) => {
+    return isUser(req);  // temp
 }
 
 const authoriseUser = (req, res) => {
-    if (!req.session.userID) {
+    if (!isUser(req)) {
         res.json({
             successful: false, 
             msg: 'Not authorised',
@@ -19,17 +33,13 @@ const authoriseUser = (req, res) => {
 
 const authoriseAdmin = (req, res) => {
 
-    if (!req.session.userID) {
+    if (!isAdmin(req)) {
         res.json({
             successful: false, 
             msg: 'Not authorised',
         })
         return false;
     }
-
-    // TODO
-    // const QUERY = `SELECT username FROM users WHERE id = '${req.session.userID}'`;
-    // db.query()
 
     return true;
 }
@@ -108,7 +118,6 @@ const getPasswordUsernameFromUser = (user, res) => {
 
     return [password, username];
 }
-
 
 const getQuantityNameFromPart = (part, res) => {
     let {name, quantity} = part;

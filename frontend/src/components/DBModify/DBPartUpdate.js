@@ -25,8 +25,8 @@ class DBPartUpdate extends DBPartModify {
     this.setState({
       partName, 
       //partQuantity, 
-      partBookcase, 
-      partShelf,
+      //partBookcase, 
+      //partShelf,
   })
   }
 
@@ -74,13 +74,13 @@ class DBPartUpdate extends DBPartModify {
         disable: true, placeholder: 'Name'
       },
       quantity: {
-        disable: false, placeholder: 'Remove'
+        disable: false, placeholder: '# To Remove'
       },
       bookcase: {
-        disable: !isAdmin, placeholder: 'Bookcase'
+        disable: !isAdmin, placeholder: 'Change Bookcase'
       },
       shelf: {
-        disable: !isAdmin, placeholder: 'Shelf'
+        disable: !isAdmin, placeholder: 'Change Shelf'
       },
     }
     return super.render('Update Part', properties);

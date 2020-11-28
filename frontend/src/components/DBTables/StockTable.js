@@ -3,77 +3,23 @@ import DBTable from './DBTable'
 import DBPartUpdate from '../DBModify/DBPartUpdate';
 
 const QUERY_ALL = '/api/parts';
-const QUERY_NAME = 'name=';
+const QUERY_STRING = 'name=';
 const QUERY_SIMILAR = 'similar=';
 
 class StockTable extends DBTable{
 
-  componentDidMount() {
-    this.search();
-  }
-
   search(similar) {
-    if (similar === undefined) {
-      similar = this.state.searchSimilar;
-    } else {
-      this.setState({
-        searchSimilar: similar,
-      })
-    }
-
-    let searchString = this.state.search;
-
-    searchString = searchString.toLowerCase();
-
-    if (searchString.length === 0) {
-      this.query(QUERY_ALL)
-    } else if (similar) {
-      this.query(`${QUERY_ALL}?${QUERY_NAME + searchString}&${QUERY_SIMILAR + 'true'}`)
-    } else {
-      this.query(`${QUERY_ALL}?${QUERY_NAME + searchString}`)
-    }
+    super.searchAPI(similar, QUERY_ALL, QUERY_STRING, QUERY_SIMILAR);
   }
-
-  searchE(e, similar) {
-    e.preventDefault();
-    this.resetLastRowStyle();
-    this.search(similar);
-  };
 
   async callRemove() {
-    const partName = this.state.nameToDelete;
-    if (!partName) {
-      console.log('no name to delete')
-      return;
-    }
-
-    try {
-
-      let res = await fetch('/api/parts/remove', {
-        method: 'post',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({parts: [{
-            name: partName,
-        }]}
-        )
-      });
-
-      let result = await res.json();
-      if (result && result.success) {
-        this.setState({error: {message: `Successfully deleted ${partName}`, variant: 'success'}});
-        this.componentDidMount();
-      }
-      else if (result && result.success === false)
-      {
-        this.setState({error: {message: `Failed to delete ${partName}`, variant: 'warning'}});
-      }
-
-    } catch(e) {
-      this.setState({error: {message: `Error delteting ${partName}`, variant: 'danger'}});
-    }
+    const url = '/api/parts/remove';
+    const data = {
+      parts: [
+        {name: this.state.nameToDelete, },
+      ]
+    };
+    super.callRemove(url, data);
   }
 
   renderEdit() {
@@ -103,7 +49,7 @@ class StockTable extends DBTable{
   render() {    
     return (
       <div className="StockTable">
-        {this.renderSearchBar()}
+        {this.renderSearchBar('Search Part Names')}
         {this.renderEdit()}
         {this.renderTable()}
       </div>

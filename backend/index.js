@@ -29,6 +29,7 @@ const db = mysql.createConnection({
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
+    dateStrings: true,
 });
 
 db.connect(function(err) {
@@ -129,6 +130,8 @@ app.get('/api/parts', function(req, res) {
             cols.push(name);
         }
     }
+
+    query = query + ' ORDER BY id DESC';
     
     const queryReq = {
         string: name,
@@ -137,15 +140,41 @@ app.get('/api/parts', function(req, res) {
     dbManagement.getParts(query, cols, queryReq, db, res);
 });
 
-//TODO temp
+app.get('/api/mylogs', function(req, res) {
+    if (!utils.authoriseUser(req, res)) {
+        return false;
+    }
+
+    const query = 'SELECT * FROM parts_logs WHERE user_id = ? ORDER BY date DESC';
+    const cols = [req.session.userID];
+    dbManagement.getLogs(query, cols, null, db, res);
+})
+
 app.get('/api/logs', function(req, res) {
-    const similar = null;
+    const {username, similar} = req.query;  // part_name?
+    
+    if (!utils.authoriseAdmin(req, res)) {
+        return false;
+    }
 
-    let cols = [];
-    let query = 'SELECT * FROM part_logs';
+    let query;
+    let cols = []
+    if (username === undefined) {
+        query = 'SELECT * FROM parts_logs';
+    } else {
+        if (similar) {
+            query = `SELECT * FROM parts_logs WHERE user_username LIKE ?`;
+            cols.push(username + '%');
+        } else {
+            query = `SELECT * FROM parts_logs WHERE user_username = ?`;
+            cols.push(username);
+        }
+    }
 
+    query = query + ' ORDER BY date DESC';
+    
     const queryReq = {
-        string: '',
+        string: username,
         similar,
     }
     dbManagement.getLogs(query, cols, queryReq, db, res);

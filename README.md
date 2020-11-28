@@ -42,3 +42,7 @@ show databases;
 USE <DATABASE>;
 show tables;
 `
+
+//TODO db.escape(var)
+//TODO insert multiple recrods eg. cols = [[...], [...], [...]]
+// middleware to authorise users?
