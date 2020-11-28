@@ -1,5 +1,3 @@
-NOTE: store item names in lowercase!
-
 REQUIRED: .env file in backend/ containing:
 `
 DB_HOST='host'
@@ -13,36 +11,21 @@ SESSION_SECRET='secret'
 
 =================
 
-insomnia helps
-
+"Production":
 `
-npm run build
-npm run <start || dev>
+/frontend ~ npm run-script build
 `
-
-Useful git commands:
 `
-git add *
-git status
-git commit -m "message"
-git push
+/backend  ~ npm start
 `
 
-Using CURL to test:
+Development:
 `
-curl --data '' localhost:4000/stock
-curl -d '{"key1":"value1", "key2":"value2"}' -H "Content-Type: application/json" -X POST http://localhost:4000/login
+/backend  ~ npm run dev
 `
-
-To connect to mysql in cmd:
 `
-mysql -h <HOST> --port <PORT> -u <USER> --password
-
-show databases;
-USE <DATABASE>;
-show tables;
+/frontend ~ npm start
 `
 
-//TODO db.escape(var)
-//TODO insert multiple recrods eg. cols = [[...], [...], [...]]
-// middleware to authorise users?
+##TODO
+insert multiple recrods eg. cols = [[...], [...], [...]]
