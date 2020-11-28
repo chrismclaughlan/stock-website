@@ -13,13 +13,14 @@ const dbManagement = require('./DBManagement');
 
 const result = dotenv.config();
 if (result.error) {
-    utils.printMessage('index.js', 'DOTENV ERROR', result.error, 'reading .config()');
+    utils.printMessage('SERVER', 'DOTENV ERROR', result.error, 'reading .config()');
     throw result.error;
 }
 
 app.use(express.static(path.join(__dirname, 'build')));
 app.use(express.json());
 
+const auth = require('./Auth')
 
 const YEAR_IN_MS = (1000 * 86400 * 365);
 
@@ -37,7 +38,7 @@ const db = mysql.createConnection({
 db.connect(function(err) {
     if (err)
     {
-        utils.printMessage('index.js', 'MYSQL ERROR', err, 'connecting');
+        utils.printMessage('SERVER', 'MYSQL ERROR', err, 'connecting');
         throw err;
     }
 });
@@ -63,12 +64,8 @@ new SessionRouter(app, db);
 new PartsRouter(app, db);
 new UsersRouter(app, db);
 
-app.get('/api/users', function(req, res) {
+app.get('/api/users', auth.userAuthenticated, function(req, res) {
     let {username, similar, privileges} = req.query
-
-    if (!utils.authoriseUser(req, res)) {
-        return false;
-    }
 
     let cols = [];
     let query = 'SELECT username FROM users';
@@ -108,12 +105,8 @@ app.get('/api/users', function(req, res) {
     dbManagement.getUsers(query, cols, queryReq, db, res);
 })
 
-app.get('/api/parts', function(req, res) {
+app.get('/api/parts', auth.userAuthenticated, function(req, res) {
     const {name, similar} = req.query;
-    
-    if (!utils.authoriseUser(req, res)) {
-        return false;
-    }
 
     let query;
     let cols = []
@@ -138,11 +131,7 @@ app.get('/api/parts', function(req, res) {
     dbManagement.getParts(query, cols, queryReq, db, res);
 });
 
-app.get('/api/mylogs', function(req, res) {
-    if (!utils.authoriseUser(req, res)) {
-        return false;
-    }
-
+app.get('/api/mylogs', auth.userAuthenticated, function(req, res) {
     const query = 'SELECT * FROM parts_logs WHERE user_id = ? ORDER BY date DESC';
     const cols = [req.session.userID];
     dbManagement.getLogs(query, cols, null, db, res);
@@ -180,35 +169,34 @@ app.get('/api/logs', function(req, res) {
     dbManagement.getLogs(query, cols, queryReq, db, res);
 });
 
-app.get('*', function(req, res) {
+app.get('/*', function(req, res) {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
 const port = 4000;
 const server = app.listen(port, () => {
-    utils.printMessage('index.js', 'READY', `Listening on http://localhost:${port}`)
+    utils.printMessage('SERVER', 'READY', `Listening on http://localhost:${port}`)
 });
 
 process.on('SIGINT', () => {
     console.log('')
-    utils.printMessage('index.js', 'SHUTDOWN', 'Received kill signal, shutting down...');
+    utils.printMessage('SERVER', 'SHUTDOWN', 'Received kill signal, shutting down...');
+
+    sessionStore.close(() => {
+        utils.printMessage('SERVER', 'SHUTDOWN', 'Closed MYSQL Session Store', 'success');
+    });
+    db.end(() => {
+        utils.printMessage('SERVER', 'SHUTDOWN', 'Ended connection with database', 'success');
+    });
 
     // Server
     server.close(() => {
-        utils.printMessage('index.js', 'SHUTDOWN', 'Closed server', 'success');
+        utils.printMessage('SERVER', 'SHUTDOWN', 'Closed server', 'success');
         process.exit(0);
     })
+
     setTimeout(() => {
-        utils.printMessage('index.js', 'SHUTDOWN', 'Could not close connections in time', 'forced');
+        utils.printMessage('SERVER', 'SHUTDOWN', 'Could not close connections in time', 'forced');
         process.exit(1);
     }, 10000);
-
-    // Database
-    db.end(() => {
-        utils.printMessage('index.js', 'SHUTDOWN', 'Ended connection with database', 'success');
-    });
-    setTimeout(() => {
-        utils.printMessage('index.js', 'SHUTDOWN', 'Could not close connection with database in time', 'forced');
-        db.destroy();
-    }, 5000);
 });

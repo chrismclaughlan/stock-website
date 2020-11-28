@@ -1,5 +1,7 @@
 const bcrypt = require('bcrypt');
 const { json } = require('express');
+const auth = require('./Auth');
+const utils = require('./Utils');
 
 class SessionRouter {
 
@@ -44,7 +46,7 @@ class SessionRouter {
                 if (data && data.length === 1) {
                     bcrypt.compare(password, data[0].password, (bcryptErr, verified) => {
                         if (bcryptErr) {
-                            console.log(bcryptErr);
+                            utils.printMessage('SESSION', 'BCRYPT ERROR', bcryptErr, `username: ${username}`);
                             throw bcryptErr;
                         }
 
@@ -57,7 +59,9 @@ class SessionRouter {
                                 privileges: data[0].privileges,
                             })
 
-                            console.log(`'${username}' logged in`)
+                            if (utils.PRINT_DEBUG_SUCCESS) {
+                                utils.printMessage('SESSION', 'SUCCESS', `Username: ${username}`, 'logged in');
+                            }
 
                             return;
                         }
@@ -83,17 +87,24 @@ class SessionRouter {
     }
 
     logout(app, db) {
-        app.post('/logout', (req, res) => {
+        app.post('/logout', auth.userAuthenticated, (req, res) => {
 
             if (req.session && req.session.userID && req.session.userID !== undefined) {
                 req.session.destroy();
-                return res.json({
+
+                if (utils.PRINT_DEBUG_SUCCESS) {
+                    utils.printMessage('SESSION', 'SUCCESS', `userID: ${req.session.userID}`, 'logged out');
+                }
+
+                res.json({
                     success: true
-                })
+                });
+                return;
             } else {
-                return res.json({
+                res.json({
                     success: false
-                })
+                });
+                return;
             }
         });
     }
@@ -102,29 +113,29 @@ class SessionRouter {
 
         app.post('/isLoggedIn', (req, res) => {
 
-            if (req.session && req.session.userID && req.session.userID !== undefined) {
-
-                let cols = [req.session.userID];
-                db.query('SELECT * FROM users WHERE id = ? LIMIT 1', cols, (err, data, fields) => {
-                    if (data && data.length === 1) {
-                        res.json({
-                            success: true,
-                            username: data[0].username,
-                            privileges: data[0].privileges,
-                        })
-
-                        return true;
-                    } else {
-                        res.json({
-                            success: false
-                        })
-                    }
-                });
-            } else {
+            if (!req.session || !req.session.userID) {
                 res.json({
                     success: false
                 })
+                return;
             }
+
+            let cols = [req.session.userID];
+            db.query('SELECT * FROM users WHERE id = ? LIMIT 1', cols, (err, data, fields) => {
+                if (data && data.length === 1) {
+                    res.json({
+                        success: true,
+                        username: data[0].username,
+                        privileges: data[0].privileges,
+                    })
+
+                    return true;
+                } else {
+                    res.json({
+                        success: false
+                    })
+                }
+            });
         });
     }
 }

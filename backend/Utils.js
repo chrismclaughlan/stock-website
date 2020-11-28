@@ -1,6 +1,9 @@
 
 const bcrypt = require('bcrypt');
 
+const PRINT_DEBUG_SUCCESS = false;
+const PRINT_DEBUG_ERRORS_SOFT = false;
+
 const printMessage = (area, type, content, action, query, cols) => {
     console.log(`[${area}] - ${type}${(action !== undefined) ? ` while ${action}` : ''} - ${content}`)
     if (query) {
@@ -171,4 +174,5 @@ module.exports = {
     printMessage, getPartsFromReq, getNameFromPart, getColsFromPart,
     getQuantityNameFromPart, authoriseUser, getPasswordUsernameFromUser,
     getUsersFromReq, getUsernameFromUser, getPasswordUserIDFromUser,
+    PRINT_DEBUG_SUCCESS, PRINT_DEBUG_ERRORS_SOFT,
 };

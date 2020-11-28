@@ -46,6 +46,29 @@ class StockTable extends DBTable{
     )
   }
 
+  renderHelpText() {
+    return (
+      <ul>
+        {this.renderHelpTextSearch()}
+
+        <br></br>
+
+        Update:
+        <li>quantity: Enter quantity to remove from database</li>
+        <li>bookcase: Enter new bookcase</li>
+        <li>shelf: Enter new shelf</li>
+
+        <br></br>
+
+        Table:
+        <li>Delete: Clicking delete will remove this part from the database entirely</li>
+        <li>quantity: Quantity of parts removed</li>
+        <li>bookcase: Current bookcase where part is located</li>
+        <li>shelf: Current shelf where part is located</li>
+      </ul>
+    )
+  }
+
   render() {    
     return (
       <div className="StockTable">

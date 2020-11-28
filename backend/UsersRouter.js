@@ -1,6 +1,7 @@
 const { json } = require('express');
 const dbManagement = require('./DBManagement');
 const utils = require('./Utils')
+const auth = require('./Auth')
 
 class UsersRouter {
 
@@ -12,12 +13,8 @@ class UsersRouter {
     }
 
     changeMyPassword(app, db) {
-        app.post('/api/users/change-my-password', (req, res) => {
-            
-            if (!utils.authoriseUser(req, res)) {
-                return false;
-            }
-            
+        app.post('/api/users/change-my-password', auth.userAuthenticated, (req, res) => {
+
             const users = utils.getUsersFromReq(req, res);
             if (!users) {
                 return false;
@@ -36,12 +33,8 @@ class UsersRouter {
     }
 
     update(app, db) {
-        app.post('/api/users/update', (req, res) => {
+        app.post('/api/users/update', auth.userAuthenticated, (req, res) => {
 
-            if (!utils.authoriseUser(req, res)) {
-                return false;
-            }
-            
             const users = utils.getUsersFromReq(req, res);
             if (!users) {
                 return false;
@@ -54,7 +47,7 @@ class UsersRouter {
             }
 
             let query = 'UPDATE stock.users u, (select username from stock.users where id = ? AND privileges >= ?) a set u.password = ? where u.username = ?';
-            cols = [req.session.userID, 1, ...cols];
+            cols = [req.session.userID, auth.PRIVILIGES_ADMIN, ...cols];
 
             console.log(query)
             console.log(cols)
@@ -64,12 +57,8 @@ class UsersRouter {
     }
 
     add(app, db) {
-        app.post('/api/users/add', (req, res) => {
-            
-            if (!utils.authoriseUser(req, res)) {
-                return false;
-            }
-            
+        app.post('/api/users/add', auth.userAuthenticated, (req, res) => {
+
             const users = utils.getUsersFromReq(req, res);
             if (!users) {
                 return false;
@@ -83,7 +72,7 @@ class UsersRouter {
 
             let query = 'INSERT INTO users(password, username) SELECT ?, ?';
             let tmpcols = [];
-            query = dbManagement.limitQueryByPrivileges(query, tmpcols, req.session.userID, 1);
+            query = dbManagement.limitQueryByPrivileges(query, tmpcols, req.session.userID, auth.PRIVILIGES_ADMIN);
             cols = [...cols, ...tmpcols];
 
             dbManagement.postUsers(query, cols, 'adding', users, db, res);
@@ -91,7 +80,7 @@ class UsersRouter {
     }
 
     remove(app, db) {
-        app.post('/api/users/remove', (req, res) => {
+        app.post('/api/users/remove', auth.userAuthenticated, (req, res) => {
 
             if (!utils.authoriseUser(req, res)) {
                 return false;
@@ -109,7 +98,7 @@ class UsersRouter {
             }
 
             let query = 'DELETE FROM stock.users WHERE username = ? AND EXISTS (SELECT username FROM ( SELECT username FROM stock.users WHERE id = ? AND privileges >= ?) AS tmp)';
-            cols = [...cols, req.session.userID, 1];
+            cols = [...cols, req.session.userID, auth.PRIVILIGES_ADMIN];
 
             dbManagement.postUsers(query, cols, 'deleting', users, db, res);
 

@@ -39,6 +39,24 @@ class UsersTable extends DBTable{
     )
   }
 
+  renderHelpText() {
+    return (
+      <ul>
+        {this.renderHelpTextSearch()}
+
+        <br></br>
+
+        Update:
+        <li>password: Enter new password for user</li>
+
+        <br></br>
+
+        Table:
+        <li>Delete: Clicking delete will remove this user from the database entirely</li>
+      </ul>
+    )
+  }
+
   render() {
     return (
       <div className="UsersTable">

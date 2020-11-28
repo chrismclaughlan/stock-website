@@ -32,6 +32,8 @@ class DBTable extends React.Component{
       entriesPerPage: DEFAULT_ENTRIES_PER_PAGE,
 
       nameToDelete: '',
+
+      showHelp: false,
     }
   }
   
@@ -106,6 +108,7 @@ class DBTable extends React.Component{
     .then(res => res.json())
     .then(
       (result) => {
+        console.log(result)
         if (result.successful) {
           this.setState({
             isLoading: false, 
@@ -414,6 +417,23 @@ class DBTable extends React.Component{
     this.setState({page});
   }
 
+  renderHelpText() {
+    return (
+      <p>Help not implemented for this table</p>
+    )
+  }
+
+  renderHelpTextSearch() {
+    return (
+      <>
+        Search:
+        <li>Search: Search for exact 1:1 match</li>
+        <li>Search Similar: Search for similar matches that start with <i>some string</i></li>
+        <li>Reset: Reset search and refresh table entries</li>
+      </>
+    )
+  }
+
   renderTable() {
     if (this.state.isLoading) {
         return (
@@ -467,7 +487,31 @@ class DBTable extends React.Component{
               </Button>
             </Modal.Footer>
           </Modal>
-          
+
+          <Modal
+            show={this.state.showHelp}
+            onHide={() => this.setState({showHelp: false})}
+            size="lg"
+            aria-labelledby="contained-modal-title-vcenter"
+            centered
+          >
+            <Modal.Header closeButton>
+              <Modal.Title id="contained-modal-title-vcenter">
+                Help
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              {this.renderHelpText()}
+            </Modal.Body>
+            <Modal.Footer>
+              <Button onClick={() => this.setState({showHelp: false})}>Close</Button>
+            </Modal.Footer>
+          </Modal>
+
+          <Button className="HelpButton" onClick={() => this.setState({showHelp: true})}>
+            Help
+          </Button>
+
           <AlertPopup error={this.state.error}/>
         </div>
       </div>

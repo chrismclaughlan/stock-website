@@ -1,5 +1,6 @@
 const utils = require('./Utils')
 const dbManagement = require('./DBManagement')
+const auth = require('./Auth')
 
 class PartsRouter {
 
@@ -10,11 +11,7 @@ class PartsRouter {
     }
 
     update(app, db) {
-        app.post('/api/parts/update', (req, res) => {
-
-            if (!utils.authoriseUser(req, res)) {
-                return false;
-            }
+        app.post('/api/parts/update', auth.userAuthenticated, (req, res) => {
 
             const parts = utils.getPartsFromReq(req, res);
             if (!parts) {
@@ -32,52 +29,41 @@ class PartsRouter {
             let cols = [];
             let query;
             const {quantity, bookcase, shelf} = part;
-            if (utils.authoriseUser(req, res)) {
+            query = 'UPDATE parts SET ';
 
-                query = 'UPDATE parts SET ';
-    
-                if (quantity) {
-                    query += 'quantity = quantity - ?';
-                    cols.push(quantity);
-                }
-    
-                if (bookcase) {
-                    if (cols.length > 0) {
-                        query += ', '
-                    }
-                    query += 'bookcase = ?';
-                    cols.push(bookcase);
-                }
-    
-                if (shelf) {
-                    if (cols.length > 0) {
-                        query += ', '
-                    }
-                    query += 'shelf = ?';
-                    cols.push(shelf);
-                }
-
-                if (cols.length === 0) {
-                    res.json({
-                        success: false,
-                        msg: 'Error parsing request: Suitable element(s) of part not defined'
-                    })
-                    return false;
-                }
-
-                query += ' WHERE name = ?'
-                cols.push(name);
-
-            } else {
-                query = 'UPDATE parts SET quantity = quantity - ? WHERE name = ?';
-                
-                cols = utils.getQuantityNameFromPart(part, res);
-                if (!cols) {
-                    return false;
-                }
+            if (quantity) {
+                query += 'quantity = quantity - ?';
+                cols.push(quantity);
             }
 
-            query = dbManagement.limitQueryByPrivileges(query, cols, req.session.userID, 1);
+            if (bookcase) {
+                if (cols.length > 0) {
+                    query += ', '
+                }
+                query += 'bookcase = ?';
+                cols.push(bookcase);
+            }
+
+            if (shelf) {
+                if (cols.length > 0) {
+                    query += ', '
+                }
+                query += 'shelf = ?';
+                cols.push(shelf);
+            }
+
+            if (cols.length === 0) {
+                res.json({
+                    success: false,
+                    msg: 'Error parsing request: Suitable element(s) of part not defined'
+                })
+                return false;
+            }
+
+            query += ' WHERE name = ?'
+            cols.push(name);
+
+            query = dbManagement.limitQueryByPrivileges(query, cols, req.session.userID, auth.PRIVILIGES_ADMIN);
 
             // action, partName, partQuantity, partBookcase, partShelf
             const action = 'updating';
@@ -93,11 +79,7 @@ class PartsRouter {
     }
 
     add(app, db) {
-        app.post('/api/parts/add', (req, res) => {
-
-            if (!utils.authoriseUser(req, res)) {
-                return false;
-            }
+        app.post('/api/parts/add', auth.userAuthenticated, (req, res) => {
 
             const parts = utils.getPartsFromReq(req, res);
             if (!parts) {
@@ -113,7 +95,7 @@ class PartsRouter {
             
             let query = 'INSERT INTO parts(quantity, bookcase, shelf, name) SELECT ?, ?, ?, ? FROM users WHERE id = ? AND privileges >= ?'
             cols.push(req.session.userID);
-            cols.push(2);
+            cols.push(auth.PRIVILIGES_ADMIN);
 
             const action = 'adding';
             const values = {
@@ -128,12 +110,7 @@ class PartsRouter {
     }
 
     remove(app, db) {
-        app.post('/api/parts/remove', (req, res) => {
-
-            if (!utils.authoriseUser(req, res)) {
-                return false;
-            }
-
+        app.post('/api/parts/remove', auth.userAuthenticated, (req, res) => {
             const parts = utils.getPartsFromReq(req, res);
             if (!parts) {
                 return false;
@@ -148,7 +125,7 @@ class PartsRouter {
 
             let cols = [name];
             let query = 'DELETE FROM parts WHERE name = ?';
-            query = dbManagement.limitQueryByPrivileges(query, cols, req.session.userID, 1)
+            query = dbManagement.limitQueryByPrivileges(query, cols, req.session.userID, auth.PRIVILIGES_ADMIN)
 
             const action = 'deleting';
             const values = {
