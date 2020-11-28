@@ -4,6 +4,11 @@ import {Table, Form, Container, Col, Button, ButtonGroup, Pagination, Modal} fro
 import Loading from '../Loading'
 import UserStore from '../../store/UserStore'
 
+
+const MAX_SEARCH_LENGTH = 255;
+const DEFAULT_ENTRIES_PER_PAGE = 15;
+
+
 class DBTable extends React.Component{
   constructor(props) {
     super(props);
@@ -18,13 +23,13 @@ class DBTable extends React.Component{
       },
       search: '',
       searchSimilar: false,
-      maxSearchLength: 255,
+      maxSearchLength: MAX_SEARCH_LENGTH,
       editColumn: null,
       editRow: null,
       lastRow: null,
 
       page: 0,
-      entriesPerPage: 20,
+      entriesPerPage: DEFAULT_ENTRIES_PER_PAGE,
 
       nameToDelete: '',
     }
@@ -400,6 +405,8 @@ class DBTable extends React.Component{
         break;
       case 'Last':
         page = Math.floor(this.state.entries.length / this.state.entriesPerPage);
+        break;
+      default:
         break;
     }
     

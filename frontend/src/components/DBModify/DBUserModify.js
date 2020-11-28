@@ -3,6 +3,8 @@ import {Form, Col, Button} from 'react-bootstrap'
 import AlertPopup from '../AlertPopup';
 import DBModify from './DBModify';
 
+const MAX_SEARCH_LENGTH = 64;
+
 class DBUserModify extends DBModify{
   constructor(props) {
     super(props);
@@ -16,7 +18,7 @@ class DBUserModify extends DBModify{
         },
         username: '',
         password: '',
-        maxSearchLength: 255,
+        maxSearchLength: MAX_SEARCH_LENGTH,
         textInput: null,
     }
   }

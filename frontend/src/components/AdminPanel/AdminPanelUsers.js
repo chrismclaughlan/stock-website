@@ -1,9 +1,7 @@
 import React from 'react';
 import UsersTable from '../DBTables/UsersTable'
 import DBUserAdd from './../DBModify/DBUserAdd'
-import {Nav, NavDropdown, Button} from 'react-bootstrap';
-
-const pages = ['Create New User']
+import {Button} from 'react-bootstrap';
 
 class AdminPanelUsers extends React.Component{
 

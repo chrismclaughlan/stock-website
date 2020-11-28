@@ -17,10 +17,12 @@ if (result.error) {
     throw result.error;
 }
 
-app.use(express.static(path.join(__dirname, '../frontend/build')));
+app.use(express.static(path.join(__dirname, 'build')));
 app.use(express.json());
 
+
 const YEAR_IN_MS = (1000 * 86400 * 365);
+
 
 // Database
 const db = mysql.createConnection({
@@ -47,7 +49,7 @@ const sessionStore = new MySQLStore({
 
 app.use(session({
     key: 'userID',
-    secret: process.env.SESSION_SECRET,  // Keep secret and randomise
+    secret: process.env.SESSION_SECRET,  // Keep secret
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
@@ -61,18 +63,12 @@ new SessionRouter(app, db);
 new PartsRouter(app, db);
 new UsersRouter(app, db);
 
-app.get('/', function(req, res) {
-    res.send(path.join(__dirname, 'build', 'index.html'));
-});
-
 app.get('/api/users', function(req, res) {
     let {username, similar, privileges} = req.query
 
     if (!utils.authoriseUser(req, res)) {
         return false;
     }
-
-    // Check if admin?
 
     let cols = [];
     let query = 'SELECT username FROM users';
@@ -101,6 +97,8 @@ app.get('/api/users', function(req, res) {
             cols.push(privileges);
         }
     }
+
+    query = dbManagement.limitQueryByPrivileges(query, cols, req.session.userID, 1);
 
     queryReq =  {
         string: username, 
@@ -153,7 +151,7 @@ app.get('/api/mylogs', function(req, res) {
 app.get('/api/logs', function(req, res) {
     const {username, similar} = req.query;  // part_name?
     
-    if (!utils.authoriseAdmin(req, res)) {
+    if (!utils.authoriseUser(req, res)) {
         return false;
     }
 
@@ -171,6 +169,8 @@ app.get('/api/logs', function(req, res) {
         }
     }
 
+    query = dbManagement.limitQueryByPrivileges(query, cols, req.session.userID, 1);
+
     query = query + ' ORDER BY date DESC';
     
     const queryReq = {
@@ -180,7 +180,35 @@ app.get('/api/logs', function(req, res) {
     dbManagement.getLogs(query, cols, queryReq, db, res);
 });
 
+app.get('*', function(req, res) {
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
 const port = 4000;
-app.listen(port, () => {
+const server = app.listen(port, () => {
     utils.printMessage('index.js', 'READY', `Listening on http://localhost:${port}`)
+});
+
+process.on('SIGINT', () => {
+    console.log('')
+    utils.printMessage('index.js', 'SHUTDOWN', 'Received kill signal, shutting down...');
+
+    // Server
+    server.close(() => {
+        utils.printMessage('index.js', 'SHUTDOWN', 'Closed server', 'success');
+        process.exit(0);
+    })
+    setTimeout(() => {
+        utils.printMessage('index.js', 'SHUTDOWN', 'Could not close connections in time', 'forced');
+        process.exit(1);
+    }, 10000);
+
+    // Database
+    db.end(() => {
+        utils.printMessage('index.js', 'SHUTDOWN', 'Ended connection with database', 'success');
+    });
+    setTimeout(() => {
+        utils.printMessage('index.js', 'SHUTDOWN', 'Could not close connection with database in time', 'forced');
+        db.destroy();
+    }, 5000);
 });

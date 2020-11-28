@@ -3,10 +3,6 @@ import UserStore from '../../store/UserStore'
 
 class DBPartUpdate extends DBPartModify { 
 
-  constructor(props) {
-      super(props)
-  }
-
   doExecute(e) {
     e.preventDefault()
 
@@ -54,20 +50,10 @@ class DBPartUpdate extends DBPartModify {
       return;
     }
 
-    // let arr = ['partQuantity', 'partBookcase', 'partShelf']
-    // if (arr.includes(property)) {
-    //   if (this.props[property] == val) {
-    //     e.currentTarget.setAttribute("style", "");
-    //   } else {
-    //     e.currentTarget.setAttribute("style", "border: 1px solid red; box-shadow: 0px 0px 2px 2px rgba(255,228,181,0.3);");
-    //   }
-    // }
-
     this.setState({[property]: val})
   }
 
   render() {
-    // TODO If admin allow to update bookcase and shelf; otherwise disable them
     const isAdmin = (UserStore.privileges > 0);
     const properties = {
       name: {

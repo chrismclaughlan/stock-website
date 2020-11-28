@@ -1,30 +1,48 @@
 const { query } = require('express');
 const utils = require('./Utils')
 
+const PRINT_DEBUG_SUCCESS = true;
+const PRINT_DEBUG_ERRORS_SOFT = true;
+
+// Returns query and changes cols values
+const limitQueryByPrivileges = (query, cols, userID, minPrivileges) => {
+    if (cols.length === 0) {
+        query += ' WHERE';
+    } else {
+        query += ' AND';
+    }
+
+    query += ' EXISTS (SELECT username FROM users WHERE id = ? AND privileges >= ?)';
+    cols.push(userID);
+    cols.push(minPrivileges);
+
+    return query;
+}
+
 const selectDB = (query, cols, queryReq, db, res, table) => {
     db.query(query, cols, (err, results) => {
         if (err) {
             utils.printMessage(table, 'MYSQL ERROR', err.code, 'selecting', query, cols);
-            console.log(query);
-            console.log(cols);
-            res.json({
+            return res.json({
                 successful: false,
                 query: queryReq,
                 error: err,
             })
-            return;
         }
 
         if (!results || results.length === 0) {
-            utils.printMessage(table, 'ERROR', "No matching entries exist", 'selecting');
-            res.json({
+            if (PRINT_DEBUG_ERRORS_SOFT) {
+                utils.printMessage(table, 'ERROR', "No matching entries exist", 'selecting');
+            }
+            return res.json({
                 successful: false,
                 query: queryReq,
             });
-            return;
         }
 
-        utils.printMessage(table, 'SUCCESS', query);
+        if (PRINT_DEBUG_SUCCESS) {
+            utils.printMessage(table, 'SUCCESS', query);
+        }
         res.json({
             successful: true,
             query: queryReq,
@@ -46,7 +64,7 @@ const modifyDB = (query, cols, action, queryReq, db, res, table, req, values) =>
                     message = 'Incorrect value(s) for column(s)'; break;
 
                 case 1062:
-                    message = 'Part already exists'; break;
+                    message = 'Entry already exists'; break;
 
                 case 1690:
                     message = 'Value(s) out of range'; break;
@@ -56,32 +74,34 @@ const modifyDB = (query, cols, action, queryReq, db, res, table, req, values) =>
             }
 
             utils.printMessage(table, 'MYSQL ERROR', err.code, action, query, cols);
-            res.json({
+            return res.json({
                 success: false,
                 query: queryReq,
                 msg: `Error ${action} entry: ${message}`
             })
-            return;
         }
 
         if (data.affectedRows <= 0) {
-            utils.printMessage(table, 'ERROR', "No matching entries exist", action);
-            res.json({
+            if (PRINT_DEBUG_ERRORS_SOFT) {
+                utils.printMessage(table, 'ERROR', "No matching entries exist OR access not authorised", action);
+            }
+            return res.json({
                 success: false,
                 query: queryReq,
-                msg: `Error ${action} entry: No matching entries exist`
+                msg: `Error ${action} entry: No matching entries exist OR access not authorised`
             })
-            return;
         }
 
-        utils.printMessage(table, 'SUCCESS', query);
+        if (PRINT_DEBUG_SUCCESS) {
+            utils.printMessage(table, 'SUCCESS', query);
+        }
         res.json({
             success: true,
             query: queryReq,
         })
 
         if (req && values) {
-            logDB(req.session.userID, db, values);
+            logDB(db, req.session.userID, values);
         }
     });
 }
@@ -106,34 +126,13 @@ const postUsers = (query, cols, action, queryReq, db, res) => {
     return modifyDB(query, cols, action, queryReq, db, res, 'stock.users');
 }
 
-
-const logDB = (userID, db, values) => {
-    const query = 'SELECT username FROM stock.users WHERE id = ? LIMIT 1';
-    const cols = [userID];
-    
-    db.query(query, cols, (err, results) => {
-        if (err) {
-            utils.printMessage('stock.users', 'MYSQL ERROR', err.code, 'finding user', query, cols);
-            return;
-        }
-
-        if (results.affectedRows <= 0) {
-            utils.printMessage('stock.users', 'ERROR', `User with id=${userID} does not exist`, 'finding user');
-            return;
-        }
-
-        utils.printMessage('stock.users', 'SUCCESS', query, 'finding user');
-        postLogDB(db, userID, results[0].username, values);
-    });
-}
-
 // required: user_id, user_username, action, part_name
 // optional: part_quantity, part_bookcase, part_shelf
-const postLogDB = (db, userID, username, values) => {
-    const query = 'INSERT INTO stock.parts_logs(user_id, user_username, action, part_name, part_quantity, part_bookcase, part_shelf) VALUES(?, ?, ?, ?, ?, ?, ?)';
-    const cols = [userID, username];
+const logDB = (db, userID, values) => {
+    const query = 'INSERT INTO stock.parts_logs(user_id, user_username, action, part_name, part_quantity, part_bookcase, part_shelf) VALUES(?, (SELECT username FROM stock.users WHERE id = ?), ?, ?, ?, ?, ?)';
+    const cols = [userID, userID];
 
-    if (!userID || !username || !values.action || !values.name) {
+    if (!userID || !values.action || !values.name) {
         utils.printMessage('stock.parts_log', 'ERROR', 'Required column(s) not defined');
         return false;
     }
@@ -155,7 +154,9 @@ const postLogDB = (db, userID, username, values) => {
             return;
         }
 
-        utils.printMessage('stock.parts_log', 'SUCCESS', query);
+        if (PRINT_DEBUG_SUCCESS) {
+            utils.printMessage('stock.parts_log', 'SUCCESS', query);
+        }
     });
 }
 
@@ -163,4 +164,5 @@ module.exports = {
     getLogs, getParts, getUsers, 
     postParts, postUsers,
     logDB,
+    limitQueryByPrivileges,
 };

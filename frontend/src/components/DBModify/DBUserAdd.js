@@ -2,10 +2,6 @@ import DBUserModify from './DBUserModify'
 
 class DBUserAdd extends DBUserModify { 
 
-  constructor(props) {
-      super(props)
-  }
-
   doExecute(e) {
     e.preventDefault()
 

@@ -1,5 +1,7 @@
 import React from 'react';
 
+const MAX_SEARCH_LENGTH = 64;
+
 class DBModify extends React.Component{
   constructor(props) {
     super(props);
@@ -11,7 +13,7 @@ class DBModify extends React.Component{
         message: '',
         variant: '',
       },
-      maxSearchLength: 255,
+      maxSearchLength: MAX_SEARCH_LENGTH,
       textInput: null,
     }
   }

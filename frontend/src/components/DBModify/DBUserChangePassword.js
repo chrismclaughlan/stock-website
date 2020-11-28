@@ -1,18 +1,13 @@
-import UserStore from '../../store/UserStore';
 import {Form, Col, Button} from 'react-bootstrap'
 import DBUserModify from './DBUserModify'
 import AlertPopup from '../AlertPopup';
 
 class DBUserChangePassword extends DBUserModify { 
 
-  constructor(props) {
-      super(props)
-  }
-
   doExecute(e) {
     e.preventDefault()
 
-    this.execute('/api/users/change-password', 'changed')
+    this.execute('/api/users/change-my-password', 'changed')
   }
 
   componentDidMount() {

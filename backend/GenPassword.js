@@ -1,4 +1,10 @@
 const bcrypt = require('bcrypt');
 
-let password = bcrypt.hashSync('idiot', 9);
-console.log(password)
+/*
+ * Manually create hashed password for db
+ */
+
+const passwordToHash = 'idiot';
+let password = bcrypt.hashSync(passwordToHash, 9);
+
+console.log(`Password='${password}'`)

@@ -8,7 +8,6 @@ import UserStore from '../../store/UserStore'
 import {observer} from 'mobx-react';
 
 const tabs = ['Users', 'Parts', 'Logs'];
-const tabsUsers = ['Existing', 'New'];
 
 class AdminPanel extends React.Component{
 
@@ -53,6 +52,9 @@ class AdminPanel extends React.Component{
             break;
         case "Logs":
             content = <AdminPanelLogs />
+            break;
+        default:
+            console.log("Error: tab doesn't exist");
             break;
     }
 

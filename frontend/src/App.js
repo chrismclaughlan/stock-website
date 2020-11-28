@@ -8,11 +8,9 @@ import './App.css';
 
 import 'bootstrap/dist/css/bootstrap.min.css'
 import StockTable from './components/DBTables/StockTable';
-import LogsTable from './components/DBTables/LogsTable'
 import MyLogsTable from './components/DBTables/MyLogsTable'
 
 import Header from './components/Header'
-import Footer from './components/Footer'
 import Account from './components/Account'
 import AdminPanel from './components/AdminPanel/AdminPanel'
 
@@ -68,8 +66,6 @@ class App extends React.Component{
 
   async doLogout() {
 
-    // Get rid of stock data? is it still there?
-
     try {
       let res = await fetch('/logout', {
         method: 'post',
@@ -94,7 +90,7 @@ class App extends React.Component{
   }
 
   render() {
-    const {stock, connectionError} = this.state;
+    const {connectionError} = this.state;
 
     if (UserStore.loading) {
       return (
@@ -108,10 +104,13 @@ class App extends React.Component{
       return (
         <div className="app">
           <div className="container">
+            
             <AlertPopup error={connectionError} />
+
             <div className="center-screen">
               <LoginForm />
             </div>
+
           </div>
         </div>
       )
@@ -147,8 +146,6 @@ class App extends React.Component{
             </Route>
 
           </Switch>
-
-          <Footer />
 
         </BrowserRouter>
       </div>

@@ -3,6 +3,8 @@ import {Form, Col, Button} from 'react-bootstrap'
 import AlertPopup from '../AlertPopup';
 import DBModify from './DBModify'
 
+const MAX_SEARCH_LENGTH = 64;
+
 class DBPartModify extends DBModify{
   constructor(props) {
     super(props);
@@ -18,7 +20,7 @@ class DBPartModify extends DBModify{
       partQuantity: '',
       partBookcase: '',
       partShelf: '',
-      maxSearchLength: 255,
+      maxSearchLength: MAX_SEARCH_LENGTH,
       textInput: null,
     }
   }

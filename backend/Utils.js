@@ -15,10 +15,6 @@ const isUser = (req) => {
     return (req.session.userID !== undefined);
 }
 
-const isAdmin = (req) => {
-    return isUser(req);  // temp
-}
-
 const authoriseUser = (req, res) => {
     if (!isUser(req)) {
         res.json({
@@ -30,20 +26,6 @@ const authoriseUser = (req, res) => {
 
     return true;
 }
-
-const authoriseAdmin = (req, res) => {
-
-    if (!isAdmin(req)) {
-        res.json({
-            successful: false, 
-            msg: 'Not authorised',
-        })
-        return false;
-    }
-
-    return true;
-}
-
 
 const getUsersFromReq = (req, res) => {
     const {users} = req.body;
@@ -187,6 +169,6 @@ const getColsFromPart = (part, res) => {
 
 module.exports = {
     printMessage, getPartsFromReq, getNameFromPart, getColsFromPart,
-    getQuantityNameFromPart, authoriseAdmin, authoriseUser, getPasswordUsernameFromUser,
+    getQuantityNameFromPart, authoriseUser, getPasswordUsernameFromUser,
     getUsersFromReq, getUsernameFromUser, getPasswordUserIDFromUser,
 };

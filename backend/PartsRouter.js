@@ -12,7 +12,6 @@ class PartsRouter {
     update(app, db) {
         app.post('/api/parts/update', (req, res) => {
 
-
             if (!utils.authoriseUser(req, res)) {
                 return false;
             }
@@ -31,9 +30,9 @@ class PartsRouter {
             }
 
             let cols = [];
-            let query = '';
+            let query;
             const {quantity, bookcase, shelf} = part;
-            if (utils.authoriseAdmin(req, res)) {
+            if (utils.authoriseUser(req, res)) {
 
                 query = 'UPDATE parts SET ';
     
@@ -76,7 +75,9 @@ class PartsRouter {
                 if (!cols) {
                     return false;
                 }
-            }            
+            }
+
+            query = dbManagement.limitQueryByPrivileges(query, cols, req.session.userID, 1);
 
             // action, partName, partQuantity, partBookcase, partShelf
             const action = 'updating';
@@ -88,19 +89,13 @@ class PartsRouter {
                 shelf,
             }
             dbManagement.postParts(query, cols, action, part, db, res, req, values);
-            
-            // query = `INSERT INTO stock.parts_logs `
-            
-            // query = `INSERT INTO stock.parts_logs(user_id, username, action, name, bookcase) VALUES(?, ?, ?, ?, ?)`;
-            // cols = [req.userID, "chris", "update", "dontdelete", 20];
         });
     }
 
-    // Admin
     add(app, db) {
         app.post('/api/parts/add', (req, res) => {
 
-            if (!utils.authoriseAdmin(req, res)) {
+            if (!utils.authoriseUser(req, res)) {
                 return false;
             }
 
@@ -111,12 +106,14 @@ class PartsRouter {
 
             const part = parts[0];
 
-            // const cols = utils.getColsFromPart(part, res);
-            // if (!cols) {
-            //     return false;
-            // }
+            let cols = utils.getColsFromPart(part, res);
+            if (!cols) {
+                return false;
+            }
             
-            // const query = 'INSERT INTO parts(quantity, bookcase, shelf, name) VALUES(?, ?, ?, ?)';
+            let query = 'INSERT INTO parts(quantity, bookcase, shelf, name) SELECT ?, ?, ?, ? FROM users WHERE id = ? AND privileges >= ?'
+            cols.push(req.session.userID);
+            cols.push(2);
 
             const action = 'adding';
             const values = {
@@ -130,11 +127,10 @@ class PartsRouter {
         });
     }
 
-    // Admin
     remove(app, db) {
         app.post('/api/parts/remove', (req, res) => {
 
-            if (!utils.authoriseAdmin(req, res)) {
+            if (!utils.authoriseUser(req, res)) {
                 return false;
             }
 
@@ -150,9 +146,9 @@ class PartsRouter {
                 return false;
             }
 
-            const cols = [name];
-            
-            const query = 'DELETE FROM parts WHERE name = ?';
+            let cols = [name];
+            let query = 'DELETE FROM parts WHERE name = ?';
+            query = dbManagement.limitQueryByPrivileges(query, cols, req.session.userID, 1)
 
             const action = 'deleting';
             const values = {
@@ -160,8 +156,6 @@ class PartsRouter {
                 name,
             }
             dbManagement.postParts(query, cols, action, part, db, res, req, values);
-
-            //dbManagement.logDB();
         });
     }
 }

@@ -16,6 +16,7 @@ class MyLogsTable extends DBTable{
   render() {    
     return (
       <div className="MyLogsTable">
+        <h1 className="display-4">My Logs</h1>
         {this.renderTable()}
       </div>
     );

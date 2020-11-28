@@ -2,10 +2,6 @@ import DBPartModify from './DBPartModify'
 
 class DBPartAdd extends DBPartModify { 
 
-  constructor(props) {
-      super(props)
-  }
-
   doExecute(e) {
     e.preventDefault()
     this.execute('/api/parts/add', 'added')

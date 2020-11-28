@@ -2,10 +2,6 @@ import DBPartModify from './DBPartModify'
 
 class DBPartRemove extends DBPartModify { 
 
-  constructor(props) {
-      super(props)
-  }
-
   doExecute(e) {
     e.preventDefault()
     this.execute('/api/parts/remove', 'deleted')

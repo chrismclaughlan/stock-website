@@ -2,10 +2,6 @@ import DBUserModify from './DBUserModify'
 
 class DBUserUpdate extends DBUserModify { 
 
-  constructor(props) {
-      super(props)
-  }
-
   doExecute(e) {
     e.preventDefault()
 
@@ -14,6 +10,19 @@ class DBUserUpdate extends DBUserModify {
 
   componentDidMount() {
     super.componentDidMount();
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    const {username } = this.props
+
+    if (prevProps.username === username) {
+        return;
+    }
+
+    this.setState({
+      username,
+      password: '',
+    })
   }
 
   render() {

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Alert, Button} from 'react-bootstrap';
+import {Alert} from 'react-bootstrap';
 
 class AlertPopup extends React.Component{
 
@@ -14,7 +14,7 @@ class AlertPopup extends React.Component{
   }
 
   componentDidUpdate(prevProps){
-    if (this.props.error.message == prevProps.error.message) {
+    if (this.props.error.message === prevProps.error.message) {
       return;
     }
 
@@ -22,23 +22,6 @@ class AlertPopup extends React.Component{
       this.setState({message: this.props.error.message, variant: this.props.error.variant.toLowerCase()})
     }
   }
-
-  // checkHide() {
-  //   if (this.state.hovering) {
-  //     return;
-  //   } else {
-  //     this.setState({message:'', variant: ''});
-  //   }
-  // }
-
-  // onHover() {
-  //   this.setState({hovering: true});
-  // }
-
-  // offHover() {
-  //   this.setState({hovering: false});
-  //   setTimeout(() => this.checkHide(), 10000);
-  // }
 
   render() {
     const {message, variant} = this.state;

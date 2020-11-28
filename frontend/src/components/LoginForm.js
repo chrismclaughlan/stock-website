@@ -1,6 +1,6 @@
 import React from 'react';
 import UserStore from '../store/UserStore';
-import {Form, Col, Button, InputGroup, FormControl, Container} from 'react-bootstrap'
+import {Form, Button, FormControl, Container} from 'react-bootstrap'
 import AlertPopup from './AlertPopup'
 
 
