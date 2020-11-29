@@ -55,6 +55,7 @@ class App extends React.Component{
       }
 
     } catch (e) {
+
       console.log(`Error trying to fetch '/isLoggedIn': '${e}'`)
       UserStore.loading = false;
       UserStore.isLoggedIn = false;

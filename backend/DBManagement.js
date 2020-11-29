@@ -1,6 +1,8 @@
 const { query } = require('express');
 const utils = require('./Utils')
 
+const {CONSOLE_RED, CONSOLE_YELLOW, CONSOLE_GREEN} = utils;
+
 // Returns query and changes cols values
 const limitQueryByPrivileges = (query, cols, userID, minPrivileges) => {
     if (cols.length === 0) {
@@ -19,7 +21,7 @@ const limitQueryByPrivileges = (query, cols, userID, minPrivileges) => {
 const selectDB = (query, cols, queryReq, db, res, table) => {
     db.query(query, cols, (err, results) => {
         if (err) {
-            utils.printMessage(table, 'MYSQL ERROR', err.code, 'selecting', query, cols);
+            utils.printMessage(CONSOLE_RED, table, 'MYSQL ERROR', err.code, 'selecting', query, cols);
             return res.json({
                 successful: false,
                 query: queryReq,
@@ -29,7 +31,7 @@ const selectDB = (query, cols, queryReq, db, res, table) => {
 
         if (!results || results.length === 0) {
             if (utils.PRINT_DEBUG_ERRORS_SOFT) {
-                utils.printMessage(table, 'ERROR', "No matching entries exist", 'selecting');
+                utils.printMessage(CONSOLE_YELLOW, table, 'ERROR', "No matching entries exist", 'selecting');
             }
             return res.json({
                 successful: false,
@@ -38,7 +40,7 @@ const selectDB = (query, cols, queryReq, db, res, table) => {
         }
 
         if (utils.PRINT_DEBUG_SUCCESS) {
-            utils.printMessage(table, 'SUCCESS', query, 'selecting');
+            utils.printMessage(CONSOLE_GREEN, table, 'SUCCESS', query, 'selecting');
         }
         res.json({
             successful: true,
@@ -70,7 +72,7 @@ const modifyDB = (query, cols, action, queryReq, db, res, table, req, values) =>
                     message = err.code; break;
             }
 
-            utils.printMessage(table, 'MYSQL ERROR', err.code, action, query, cols);
+            utils.printMessage(CONSOLE_RED, table, 'MYSQL ERROR', err.code, action, query, cols);
             return res.json({
                 success: false,
                 query: queryReq,
@@ -80,17 +82,17 @@ const modifyDB = (query, cols, action, queryReq, db, res, table, req, values) =>
 
         if (data.affectedRows <= 0) {
             if (utils.PRINT_DEBUG_ERRORS_SOFT) {
-                utils.printMessage(table, 'ERROR', "No matching entries exist OR access not authorised", action);
+                utils.printMessage(CONSOLE_YELLOW, table, 'ERROR', "No matching entries exist", action);
             }
             return res.json({
                 success: false,
                 query: queryReq,
-                msg: `Error ${action} entry: No matching entries exist OR access not authorised`
+                msg: `Error ${action} entry: No matching entries exist`
             })
         }
 
         if (utils.PRINT_DEBUG_SUCCESS) {
-            utils.printMessage(table, 'SUCCESS', JSON.stringify(cols), action);
+            utils.printMessage(CONSOLE_GREEN, table, 'SUCCESS', JSON.stringify(cols), action);
         }
         res.json({
             success: true,
@@ -128,7 +130,7 @@ const logDB = (db, userID, values) => {
     const cols = [userID, userID];
 
     if (!userID || !values.action || !values.name) {
-        utils.printMessage('DB logs', 'ERROR', 'Required column(s) not defined');
+        utils.printMessage(CONSOLE_RED, 'DB logs', 'ERROR', 'Required column(s) not defined');
         return false;
     }
 
@@ -140,17 +142,17 @@ const logDB = (db, userID, values) => {
 
     db.query(query, cols, (err, results) => {
         if (err) {
-            utils.printMessage('DB logs', 'MYSQL ERROR', err.code, 'logging', query, cols);
+            utils.printMessage(CONSOLE_RED, 'DB logs', 'MYSQL ERROR', err.code, 'logging', query, cols);
             return;
         }
 
         if (results.affectedRows === 0) {
-            utils.printMessage('DB logs', 'ERROR', 'Action not logged');
+            utils.printMessage(CONSOLE_RED, 'DB logs', 'ERROR', 'Action not logged');
             return;
         }
 
         if (utils.PRINT_DEBUG_SUCCESS) {
-            utils.printMessage('DB logs', 'SUCCESS', JSON.stringify(cols));
+            utils.printMessage(CONSOLE_GREEN, 'DB logs', 'SUCCESS', JSON.stringify(cols));
         }
     });
 }

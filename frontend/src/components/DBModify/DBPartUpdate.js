@@ -36,8 +36,8 @@ class DBPartUpdate extends DBPartModify {
     this.setState({
         partName, 
         partQuantity: '', 
-        partBookcase, 
-        partShelf,
+        partBookcase: '', 
+        partShelf: '',
     })
 
     this.textInput.focus();

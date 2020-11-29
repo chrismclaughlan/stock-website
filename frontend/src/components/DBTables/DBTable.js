@@ -105,22 +105,45 @@ class DBTable extends React.Component{
     this.setState({error: {message: null, variant: null}})
 
     fetch(url)
-    .then(res => res.json())
+    .then(res => {
+      if (res.ok) {
+        return res = res.json();
+      } else {
+        let reason;
+        switch(res.status) {
+          case 401:
+            reason = 'Access denied: Not authenticated (401)'; break;
+          case 403:
+            reason = 'Access denied: Not authorised (403)'; break;
+          default:
+            reason = `(${res.status})`; break;
+        }
+
+        this.setState({
+          isLoading: false,
+          query: null, 
+          error: {
+            message: `Query unsuccessful. ${reason}`, 
+            variant: "warning",
+          },
+        });
+      }
+    })
     .then(
       (result) => {
-        console.log(result)
+        if (!result) {
+          return;
+        }
+        
         if (result.successful) {
           this.setState({
             isLoading: false, 
             entries: result.results,
             query: result.query,
           })
-        } else {
-          
+        } else {          
           let reason;
-          if (result.notAuthorised) {
-            reason = 'Not authorised';
-          } else if (result.query) {
+          if (result.query && result.query.string) {
             reason = `Could not find  ${result.query.string}  in database`;
           } else {
             reason = 'Could not find any entries in database';

@@ -7,7 +7,6 @@ import UserStore from '../store/UserStore';
 class Header extends React.Component{
 
   render() {
-    console.log(UserStore.privileges)
     return (
         <div className="Header">
           <Navbar bg="dark" variant="dark" expand="lg">

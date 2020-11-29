@@ -11,9 +11,11 @@ const UsersRouter = require('./UsersRouter');
 const utils = require('./Utils');
 const dbManagement = require('./DBManagement');
 
+const {CONSOLE_RED, CONSOLE_YELLOW, CONSOLE_GREEN} = utils;
+
 const result = dotenv.config();
 if (result.error) {
-    utils.printMessage('SERVER', 'DOTENV ERROR', result.error, 'reading .config()');
+    utils.printMessage(CONSOLE_RED, 'SERVER', 'DOTENV ERROR', result.error, 'reading .config()');
     throw result.error;
 }
 
@@ -38,7 +40,7 @@ const db = mysql.createConnection({
 db.connect(function(err) {
     if (err)
     {
-        utils.printMessage('SERVER', 'MYSQL ERROR', err, 'connecting');
+        utils.printMessage(CONSOLE_RED, 'SERVER', 'MYSQL ERROR', err, 'connecting');
         throw err;
     }
 });
@@ -64,11 +66,11 @@ new SessionRouter(app, db);
 new PartsRouter(app, db);
 new UsersRouter(app, db);
 
-app.get('/api/users', auth.userAuthenticated, function(req, res) {
+app.get('/api/users', auth.userAuthorised, function(req, res) {
     let {username, similar, privileges} = req.query
 
     let cols = [];
-    let query = 'SELECT username FROM users';
+    let query = 'SELECT username, privileges FROM users';
 
     if (username !== undefined) {
         query = query + ' WHERE username';
@@ -95,7 +97,7 @@ app.get('/api/users', auth.userAuthenticated, function(req, res) {
         }
     }
 
-    query = dbManagement.limitQueryByPrivileges(query, cols, req.session.userID, 1);
+    //query = dbManagement.limitQueryByPrivileges(query, cols, req.session.userID, auth.PRIVILIGES_ADMIN);
 
     queryReq =  {
         string: username, 
@@ -137,12 +139,8 @@ app.get('/api/mylogs', auth.userAuthenticated, function(req, res) {
     dbManagement.getLogs(query, cols, null, db, res);
 })
 
-app.get('/api/logs', function(req, res) {
+app.get('/api/logs', auth.userAuthorised, function(req, res) {
     const {username, similar} = req.query;  // part_name?
-    
-    if (!utils.authoriseUser(req, res)) {
-        return false;
-    }
 
     let query;
     let cols = []
@@ -158,7 +156,7 @@ app.get('/api/logs', function(req, res) {
         }
     }
 
-    query = dbManagement.limitQueryByPrivileges(query, cols, req.session.userID, 1);
+    //query = dbManagement.limitQueryByPrivileges(query, cols, req.session.userID, auth.PRIVILIGES_ADMIN);
 
     query = query + ' ORDER BY date DESC';
     
@@ -175,28 +173,28 @@ app.get('/*', function(req, res) {
 
 const port = 4000;
 const server = app.listen(port, () => {
-    utils.printMessage('SERVER', 'READY', `Listening on http://localhost:${port}`)
+    utils.printMessage(CONSOLE_GREEN, 'SERVER', 'READY', `Listening on http://localhost:${port}`)
 });
 
 process.on('SIGINT', () => {
     console.log('')
-    utils.printMessage('SERVER', 'SHUTDOWN', 'Received kill signal, shutting down...');
+    utils.printMessage(CONSOLE_YELLOW, 'SERVER', 'SHUTDOWN', 'Received kill signal, shutting down...');
 
-    sessionStore.close(() => {
-        utils.printMessage('SERVER', 'SHUTDOWN', 'Closed MYSQL Session Store', 'success');
-    });
     db.end(() => {
-        utils.printMessage('SERVER', 'SHUTDOWN', 'Ended connection with database', 'success');
+        utils.printMessage(CONSOLE_GREEN, 'SERVER', 'SHUTDOWN', 'Ended connection with database', 'success');
+    });
+    sessionStore.close(() => {
+        utils.printMessage(CONSOLE_GREEN, 'SERVER', 'SHUTDOWN', 'Closed MYSQL Session Store', 'success');
     });
 
     // Server
     server.close(() => {
-        utils.printMessage('SERVER', 'SHUTDOWN', 'Closed server', 'success');
+        utils.printMessage(CONSOLE_GREEN, 'SERVER', 'SHUTDOWN', 'Closed server', 'success');
         process.exit(0);
     })
 
     setTimeout(() => {
-        utils.printMessage('SERVER', 'SHUTDOWN', 'Could not close connections in time', 'forced');
+        utils.printMessage(CONSOLE_YELLOW, 'SERVER', 'SHUTDOWN', 'Could not close connections in time', 'forced');
         process.exit(1);
     }, 10000);
 });

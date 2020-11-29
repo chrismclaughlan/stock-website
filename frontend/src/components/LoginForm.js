@@ -62,9 +62,6 @@ class LoginForm extends React.Component{
 
         this.setState({buttonDisabled: true});
 
-        //console.log(`Trying to login with username=${this.state.username} and password=${this.state.password}`)
-
-        console.log("hi")
         try
         {
             let res = await fetch('/login', {
@@ -82,7 +79,6 @@ class LoginForm extends React.Component{
             let result = await res.json();
 
             if (!result) {
-                console.log(e);
                 this.resetForm(true);
             }
 

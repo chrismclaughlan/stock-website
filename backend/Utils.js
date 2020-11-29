@@ -1,16 +1,22 @@
 
 const bcrypt = require('bcrypt');
 
-const PRINT_DEBUG_SUCCESS = false;
-const PRINT_DEBUG_ERRORS_SOFT = false;
+const CONSOLE_RED = '\x1b[31m%s\x1b[0m';
+const CONSOLE_YELLOW = '\x1b[33m%s\x1b[0m';
+const CONSOLE_GREEN = '\x1b[32m%s\x1b[0m';
 
-const printMessage = (area, type, content, action, query, cols) => {
-    console.log(`[${area}] - ${type}${(action !== undefined) ? ` while ${action}` : ''} - ${content}`)
+const PRINT_DEBUG_SUCCESS = true;
+const PRINT_DEBUG_ERRORS_SOFT = true;
+
+const printMessage = (colour, area, type, content, action, query, cols) => {
+
+    console.log(colour, `[${area}] - ${type}${(action !== undefined) ? ` while ${action}` : ''} - ${content}`)
+
     if (query) {
-        console.log(`SQL Query - ${query}`);
+        console.log(colour, `[${area}] - QUERY: '${query}'`);
     }
     if (cols) {
-        console.log(`SQL Cols  - ${cols}`);
+        console.log(colour, `[${area}] - COLS:  ${JSON.stringify(cols)}`);
     }
 }
 
@@ -174,5 +180,6 @@ module.exports = {
     printMessage, getPartsFromReq, getNameFromPart, getColsFromPart,
     getQuantityNameFromPart, authoriseUser, getPasswordUsernameFromUser,
     getUsersFromReq, getUsernameFromUser, getPasswordUserIDFromUser,
+    CONSOLE_RED, CONSOLE_YELLOW, CONSOLE_GREEN,
     PRINT_DEBUG_SUCCESS, PRINT_DEBUG_ERRORS_SOFT,
 };
