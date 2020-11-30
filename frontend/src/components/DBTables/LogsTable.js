@@ -9,7 +9,12 @@ const QUERY_SIMILAR = 'similar=';
 class LogsTable extends DBTable{
 
   search() {
-    super.searchAPI(this.state.searchSimilar, QUERY_ALL, QUERY_STRING, QUERY_SIMILAR);
+    super.searchAPI(this.state.search, this.state.searchSimilar, QUERY_ALL, QUERY_STRING, QUERY_SIMILAR);
+  }
+
+  searchLast() {
+    const searchString = (this.state.searchLast.string !== undefined) ? this.state.searchLast.string : '';
+    this.searchAPI(searchString, this.state.searchLast.similar, QUERY_ALL, QUERY_STRING, QUERY_SIMILAR);
   }
 
   async callRemove() {

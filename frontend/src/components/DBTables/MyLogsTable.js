@@ -10,6 +10,10 @@ class MyLogsTable extends DBTable{
     this.query(QUERY_ALL);
   }
 
+  searchLast() {
+    this.query(QUERY_ALL);
+  }
+
   callRemove() {
     return;
   }

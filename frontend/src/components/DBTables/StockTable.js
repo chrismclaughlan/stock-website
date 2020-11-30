@@ -10,7 +10,7 @@ const QUERY_SIMILAR = 'similar=';
 class StockTable extends DBTable{
 
   search() {
-    this.searchAPI(this.state.search, this.state.searchSimilar, QUERY_ALL, QUERY_STRING, QUERY_SIMILAR);
+    super.searchAPI(this.state.search, this.state.searchSimilar, QUERY_ALL, QUERY_STRING, QUERY_SIMILAR);
   }
 
   searchLast() {

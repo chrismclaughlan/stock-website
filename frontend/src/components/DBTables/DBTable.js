@@ -77,7 +77,8 @@ class DBTable extends React.Component{
   }
 
   handleClickOutside(e) {
-    if (this.state.insideRef && !this.state.insideRef.current.contains(e.target)) {
+    console.log(this.state.insideRef)
+    if (this.state.insideRef && this.state.insideRef.current && !this.state.insideRef.current.contains(e.target)) {
       this.resetEdit();
     }
   }
@@ -85,14 +86,12 @@ class DBTable extends React.Component{
   // Performs query for search with different query properties
   searchAPI(searchString, similar, api_query_all, api_query_string, api_query_similar) {
 
-    searchString = searchString.toLowerCase();
-
-    if (searchString.length === 0) {
+    if (! searchString || searchString.length === 0) {
       this.query(api_query_all)
     } else if (similar) {
-      this.query(`${api_query_all}?${api_query_string + searchString}&${api_query_similar + 'true'}`)
+      this.query(`${api_query_all}?${api_query_string + searchString.toLowerCase()}&${api_query_similar + 'true'}`)
     } else {
-      this.query(`${api_query_all}?${api_query_string + searchString}`)
+      this.query(`${api_query_all}?${api_query_string + searchString.toLowerCase()}`)
     }
   }
   
@@ -175,18 +174,20 @@ class DBTable extends React.Component{
     .then(res => res.json())
     .then((result) => {
       
+      const {query} = result;
+
       if (result.successful) {
         this.setState({
           isLoading: false, 
           disableButton: false,
           entries: result.results,
-          query: result.query,
-          searchLast: {string: result.query.string, similar: result.query.similar},
+          query,
+          searchLast: {string: (query) ? result.query.string : undefined, similar: (query) ? result.query.similar : undefined},
         }, this.resetEdit)
       } else {          
         let reason;
-        if (result.query && result.query.string) {
-          reason = `Could not find  ${result.query.string}  in database`;
+        if (query && query.string) {
+          reason = `Could not find  ${query.string}  in database`;
         } else {
           reason = 'Could not find any entries in database';
         }
@@ -209,7 +210,7 @@ class DBTable extends React.Component{
         disableButton: false,
         query: null, 
         error: {
-          message: 'Error trying to query database',
+          message: `Error trying to query database: ${err}`,
           variant: 'danger',
         },
       })
@@ -321,24 +322,19 @@ class DBTable extends React.Component{
   }
 
   renderTableHeadings() {
-    const {entries} = this.state
-    const showColumns = this.props.showColumns
+    const {entries} = this.state;
+    const {columnNames, enableDelete} = this.props;
 
-    if (entries && entries.length > 0 && showColumns && showColumns.length > 0) {
+    if (entries && entries.length > 0 && columnNames && columnNames.length > 0) {
         return (
             <tr className="hidden-button-parent">
               {
-                  Object.keys(entries[0]).map(function(key, index) {
-                        if (showColumns.includes(key)) {
-                            return <th key={index}>{key}</th>
-                        } else {
-                          return null
-                        }
-                      }
-                  )
+                columnNames.map(function(colName, index) {
+                  return <th key={index}>{colName}</th>;
+                })
               }
               {
-                (UserStore.privileges > 0 && showColumns.includes('Delete')) ?
+                (UserStore.privileges > 0 && enableDelete) ?
                 <th key={-1}>
                   Delete
                 </th>
@@ -407,10 +403,10 @@ class DBTable extends React.Component{
   }
 
   renderTableEntries () {
-    const {entries} = this.state
-    const showColumns = this.props.showColumns
+    const {entries} = this.state;
+    const {columnNames, enableDelete, columnsIgnore} = this.props;
 
-    if (entries && showColumns && showColumns.length > 0) {
+    if (entries && columnNames && columnNames.length > 0) {
 
       let arrEntries = []
       var start = this.state.page * this.state.entriesPerPage;
@@ -422,22 +418,21 @@ class DBTable extends React.Component{
           break;
         }
 
-        let rows = Object.keys(entries[i]).map((key, idx) => {          
-          if (showColumns.includes(key)) {
-            return (
-              <td index={i} key={idx} onClick={(e) => this.setEdit(e, key)}>
-                {entries[i][key]}
-              </td>
-            )
-          } else {
-            return null
+        let rows = Object.keys(entries[i]).map((key, idx) => {
+          if (columnsIgnore && columnsIgnore.includes(key)) {
+            return null;
           }
+          return (
+            <td index={i} key={idx} onClick={(e) => this.setEdit(e, key)}>
+              {entries[i][key]}
+            </td>
+          )
         }, )
         arrEntries.push(rows)
       }
 
       let button;
-      if (UserStore.privileges > 0 && showColumns.includes('Delete')) {
+      if (UserStore.privileges > 0 && enableDelete) {
         button = (
           <td className="hidden-button" >
             <Button onClick={(e) => this.deleteByName(e)} className="AppButton" size="sm">Delete</Button>

@@ -138,13 +138,13 @@ class App extends React.Component{
 
             <Route exact path="/">
               <div className="container">
-                <StockTable showColumns={["Delete", "name", "quantity", "bookcase", "shelf"]}/>
+                <StockTable enableDelete columnsIgnore={["id"]} columnNames={["name", "quantity", "bookcase", "shelf"]}/>
               </div>
             </Route>
 
             <Route exact path="/mylogs">
               <div className="container">
-                <MyLogsTable showColumns={["id", "user_username", "action", "part_name", "part_quantity", "part_bookcase", "part_shelf", "date"]}/>
+                <MyLogsTable columnsIgnore={["id", "user_id"]}  columnNames={["user_username", "action", "part_name", "part_quantity", "part_bookcase", "part_shelf", "date"]}/>
               </div>
             </Route>
 

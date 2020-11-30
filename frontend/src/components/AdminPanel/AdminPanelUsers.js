@@ -26,7 +26,7 @@ class AdminPanelUsers extends React.Component{
     switch(this.state.page) {
       case 'Existing Users':
         button = <Button className="AppButton" onClick={() => this.setState({page: 'Create New User'})}>Create New User</Button>
-        content = <UsersTable showColumns={["Delete", "username", "privileges"]}/>;
+        content = <UsersTable enableDelete columnsIgnore={["id", "password"]} columnNames={["username", "privileges"]}/>;
         break;
       case 'Create New User':
         content = <DBUserAdd />;
