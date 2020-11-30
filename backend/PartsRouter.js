@@ -18,6 +18,8 @@ class PartsRouter {
 
             if (! utils.validateRequest(req.body, ['parts'], res)) return;
             const {parts} = req.body;
+            
+            if (! utils.validateIsArray(parts, res)) return;
             const part = parts[0];
 
             if (! utils.validateRequest(part, ['name'], res)) return false;
@@ -90,6 +92,8 @@ class PartsRouter {
 
             if (! utils.validateRequest(req.body, ['parts'], res)) return;
             const {parts} = req.body;
+
+            if (! utils.validateIsArray(parts, res)) return;
             const part = parts[0];
 
             if (! utils.validateRequest(part, ['name', 'quantity', 'bookcase', 'shelf'], res)) return;
@@ -126,6 +130,8 @@ class PartsRouter {
 
             if (! utils.validateRequest(req.body, ['parts'], res)) return;
             const {parts} = req.body;
+
+            if (! utils.validateIsArray(parts, res)) return;
             const part = parts[0];
 
             if (! utils.validateRequest(part, ['name'], res)) return;

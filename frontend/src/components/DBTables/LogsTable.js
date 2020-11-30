@@ -22,6 +22,10 @@ class LogsTable extends DBTable{
     super.callRemove(url, data);
   }
 
+  callRemove() {
+    return;
+  }
+
   renderHelpText() {
     return (
       <ul>

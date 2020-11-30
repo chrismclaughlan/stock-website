@@ -4,8 +4,6 @@ const auth = require('./Auth');
 const utils = require('./Utils');
 
 const {CONSOLE_RED, CONSOLE_YELLOW, CONSOLE_GREEN} = utils;
-const MAX_USERNAME_LEN = 12;
-const MAX_PASSWORD_LEN = 12;
 
 class SessionRouter {
 

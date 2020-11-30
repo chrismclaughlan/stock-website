@@ -11,7 +11,7 @@ class MyLogsTable extends DBTable{
   }
 
   callRemove() {
-    alert("no");
+    return;
   }
 
   renderHelpText() {

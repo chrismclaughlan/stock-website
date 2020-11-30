@@ -312,7 +312,7 @@ class DBTable extends React.Component{
         return (
             <tr className="hidden-button-parent">
               {
-                (UserStore.privileges > 0) ?
+                (UserStore.privileges > 0 && showColumns.includes('Delete')) ?
                 <th key={-1}>
                   Delete
                 </th>
@@ -379,7 +379,9 @@ class DBTable extends React.Component{
 
   // Confirms entry deletion
   confirmDelete() {
-    this.callRemove();
+    const url = this.props.tableQueries.remove.url;
+    const data = {[this.props.tableQueries.remove.outsideProperty]: [{[this.props.tableQueries.remove.insideProperty]: this.state.nameToDelete}]};
+    this.callRemove(url, data);
     this.setState({nameToDelete: ''});
   }
 
@@ -421,7 +423,7 @@ class DBTable extends React.Component{
       }
 
       let button;
-      if (UserStore.privileges > 0) {
+      if (UserStore.privileges > 0 && showColumns.includes('Delete')) {
         button = (
           <td className="hidden-button" >
             <Button onClick={(e) => this.deleteByName(e)} className="AppButton" size="sm">Delete</Button>
@@ -436,7 +438,7 @@ class DBTable extends React.Component{
         
         arrEntriesDivided.push(
           <tr key={i}className="hidden-button-parent" >
-              {button}
+            {button}
             {arrEntries[i]}
           </tr>
         )
@@ -482,9 +484,12 @@ class DBTable extends React.Component{
   }
 
   renderHelpText() {
-    return (
-      <p>Help not implemented for this table</p>
-    )
+
+    if (this.props.renderHelpText) {
+      return this.props.renderHelpText();
+    } else {
+      return <p>Help not implemented for this table</p>;
+    }
   }
 
   renderHelpTextSearch() {
@@ -578,6 +583,21 @@ class DBTable extends React.Component{
 
           <AlertPopup error={this.state.error}/>
         </div>
+      </div>
+    )
+  }
+
+  search(similar) {
+    this.searchAPI(similar, this.props.tableQueries.search.url, this.props.tableQueries.search.string, this.props.tableQueries.search.similar);
+  }
+
+  render () {
+    return (
+      <div className="DBTable">
+        <h1 className="display-4">{this.props.title}</h1>
+        {this.props.showSearchBar ? this.renderSearchBar(this.props.searchBarPlaceholder) : null}
+        {this.props.showEdit ? <p>render edit</p> : null}
+        {this.renderTable()}
       </div>
     )
   }

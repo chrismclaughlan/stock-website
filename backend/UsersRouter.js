@@ -22,6 +22,8 @@ class UsersRouter {
 
             if (! utils.validateRequest(req.body, ['users'], res)) return;
             const {users} = req.body;
+            
+            if (! utils.validateIsArray(users, res)) return;
             const user = users[0];
 
             if (! utils.validateRequest(user, ['password'], res)) return;
@@ -47,6 +49,8 @@ class UsersRouter {
 
             if (! utils.validateRequest(req.body, ['users'], res)) return;
             const {users} = req.body;
+
+            if (! utils.validateIsArray(users, res)) return;
             const user = users[0];
 
             if (! utils.validateRequest(user, ['username'], res)) return;
@@ -102,6 +106,8 @@ class UsersRouter {
 
             if (! utils.validateRequest(req.body, ['users'], res)) return;
             const {users} = req.body;
+
+            if (! utils.validateIsArray(users, res)) return;
             const user = users[0];
 
             if (! utils.validateRequest(user, ['username', 'password', 'privileges'], res)) return;
@@ -137,6 +143,8 @@ class UsersRouter {
 
             if (! utils.validateRequest(req.body, ['users'], res)) return;
             const {users} = req.body;
+
+            if (! utils.validateIsArray(users, res)) return;
             const user = users[0];
 
             if (! utils.validateRequest(user, ['username'], res)) return;

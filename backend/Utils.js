@@ -20,6 +20,7 @@ const printMessage = (colour, area, type, content, action, query, cols) => {
 
 const validateRequest = (req, properties, res) => {
     let propertyNotDefined = '';
+
     properties.forEach(property => {
         if (! req[property] || req[property].length === 0) {
             propertyNotDefined = property;
@@ -38,8 +39,20 @@ const validateRequest = (req, properties, res) => {
     return true;
 }
 
+const validateIsArray = (array, res) => {
+    if (!Array.isArray(array)) {
+        res.json({
+            success: false,
+            msg: 'Request lacks array',
+        }).end()
+        return false;
+    }
+
+    return true;
+}
+
 module.exports = {
-    printMessage, validateRequest,
+    printMessage, validateRequest, validateIsArray,
 
     // Constants
     CONSOLE_RED, CONSOLE_YELLOW, CONSOLE_GREEN,

@@ -31,6 +31,7 @@ class StockTable extends DBTable{
       return null
     }
 
+    // COMBINE ADD/SUB WITH BOOKCASE AND SHELF
     return (
       <div>
       <DBPartUpdate 
