@@ -13,22 +13,22 @@ class DBPartAdd extends DBPartModify {
   render() {
     const properties = {
       name: {
-        disable: false, placeholder: 'Name'
+        disable: false, placeholder: 'Navn'
       },
       quantityAdd: {
-        disable: false, placeholder: 'Quantity'
+        disable: false, placeholder: 'Antal'
       },
       quantitySubtract: {
         disable: true, placeholder: ''
       },
       bookcase: {
-        disable: false, placeholder: 'Bookcase'
+        disable: false, placeholder: 'Reol'
       },
       shelf: {
-        disable: false, placeholder: 'Shelf'
+        disable: false, placeholder: 'Hylde'
       },
     }
-    return super.render('Add Part', properties);
+    return super.render('Tilføj Del', properties);
   }
 }
 

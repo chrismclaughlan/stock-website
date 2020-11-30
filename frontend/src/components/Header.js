@@ -23,28 +23,18 @@ class Header extends React.Component{
             &nbsp;&nbsp;&nbsp;&nbsp; {/* Temp fix for spacing */}
 
                 <Nav className="mr-auto">
-                  <Navbar.Brand href="/">Home</Navbar.Brand>
-                  <Nav.Link href="/mylogs">My Logs</Nav.Link>
+                  <Navbar.Brand href="/">Hejm</Navbar.Brand>
+                  <Nav.Link href="/mylogs">Logs</Nav.Link>
                   {
                     UserStore.privileges > 0 ?
                       <Nav.Link href="/admin-panel">Admin Panel</Nav.Link>
                       :
                       null
                   }
-                  
-
-
-                  {/* <NavDropdown title="Admin Panel" id="basic-nav-dropdown">
-                      <NavDropdown.Item href="/admin-panel">General</NavDropdown.Item>
-                      <NavDropdown.Divider />
-                      <NavDropdown.Item href="/admin-panel/users">Users</NavDropdown.Item>
-                      <NavDropdown.Item href="/admin-panel/parts">Parts</NavDropdown.Item>
-                      <NavDropdown.Item href="/admin-panel/logs">Logs</NavDropdown.Item>
-                  </NavDropdown> */}
               </Nav>            
             
                 <Navbar.Text>
-                  Signed in as: <a href="/account">{UserStore.username}</a>
+                  Logged på som: <a href="/account">{UserStore.username}</a>
                 </Navbar.Text>
 
                 &nbsp;&nbsp;&nbsp;&nbsp;
@@ -55,9 +45,9 @@ class Header extends React.Component{
                   id="dropdown-menu-align-right"
                   variant="isvisible"
                 >
-                  <Dropdown.Item href="/account">Account</Dropdown.Item>
+                  <Dropdown.Item href="/account">Konto</Dropdown.Item>
                   <Dropdown.Divider />
-                  <Dropdown.Item as="button"  onClick={this.props.onLogout}>Logout</Dropdown.Item>
+                  <Dropdown.Item as="button"  onClick={this.props.onLogout}>Log ud</Dropdown.Item>
                 </DropdownButton>
 
           </Navbar>

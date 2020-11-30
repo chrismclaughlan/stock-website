@@ -66,7 +66,7 @@ class UsersTable extends DBTable{
   render() {
     return (
       <div className="UsersTable">
-        {this.renderSearchBar('Search Usernames')}
+        {this.renderSearchBar('Søg Brugernavne')}
         {this.renderEdit()}
         {this.renderTable()}
       </div>

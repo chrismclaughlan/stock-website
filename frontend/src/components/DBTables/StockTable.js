@@ -51,14 +51,6 @@ class StockTable extends DBTable{
     )
   }
 
-  handleClick() {
-    console.log("CLICK")
-  }
-
-  useEffect() {
-    document.addEventListener("mousedown", this.handleClick);
-  }
-
   renderHelpText() {
     return (
       <ul>

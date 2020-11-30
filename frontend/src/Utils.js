@@ -11,11 +11,11 @@ const handleFetchError = (res) => {
         let reason;
         switch(res.status) {
           case 401:
-            reason = 'Access denied: Not authenticated (401)'; break;
+            reason = 'Access denied: Not authenticated (401)'; break;  // TRANSLATE
           case 403:
-            reason = 'Access denied: Not authorised (403)'; break;
+            reason = 'Access denied: Not authorised (403)'; break;  // TRANSLATE
           default:
-            reason = `(Status ${res.status})`; break;
+            reason = `(Status ${res.status})`; break;  // TRANSLATE
         }
 
         throw Error(reason);

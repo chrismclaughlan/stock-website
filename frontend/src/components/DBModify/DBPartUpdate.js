@@ -44,19 +44,19 @@ class DBPartUpdate extends DBPartModify {
     const isAdmin = (UserStore.privileges > 0);
     const properties = {
       name: {
-        disable: true, placeholder: 'Name'
+        disable: true, placeholder: 'Navn'
       },
       quantityAdd: {
-        disable: !isAdmin, placeholder: '# To Add'
+        disable: !isAdmin, placeholder: 'Mængde at tilføje'
       },
       quantitySubtract: {
-        disable: false, placeholder: '# To Remove'
+        disable: false, placeholder: 'Mængde taget'
       },
       bookcase: {
-        disable: !isAdmin, placeholder: 'Change Bookcase'
+        disable: !isAdmin, placeholder: 'Ændre Reol'
       },
       shelf: {
-        disable: !isAdmin, placeholder: 'Change Shelf'
+        disable: !isAdmin, placeholder: 'Ændre Hylde'
       },
     }
     return super.render('', properties);

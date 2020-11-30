@@ -7,7 +7,7 @@ import AlertPopup from '../AlertPopup'
 import UserStore from '../../store/UserStore'
 import {observer} from 'mobx-react';
 
-const tabs = ['Users', 'Parts', 'Logs'];
+const tabs = ['Brugere', 'Dele', 'Logs'];
 
 class AdminPanel extends React.Component{
 

@@ -139,7 +139,7 @@ class LoginForm extends React.Component{
                                     isInvalid={this.state.usernameIncorrect}
                                     type="text"
                                     className="mb-2 mr-sm-2"
-                                    placeholder="Username"
+                                    placeholder="Brugernavn"
                                     value={this.state.username}
                                     onChange={(val) => this.setInputValue('username', val.target.value)}
                                 />
@@ -152,7 +152,7 @@ class LoginForm extends React.Component{
                                     isInvalid={this.state.passwordIncorrect}
                                     type="password"
                                     className="mb-2 mr-sm-2"
-                                    placeholder="Password"
+                                    placeholder="Adgangskode"
                                     value={this.state.password}
                                     onChange={(val) => this.setInputValue('password', val.target.value)}
                                 />
@@ -163,7 +163,7 @@ class LoginForm extends React.Component{
                                 type="submit" 
                                 className="AppButton mb-2 mr-sm-2"
                             >
-                                Login
+                                Log ind
                             </Button>
                         </Form.Row>
                         </Container>

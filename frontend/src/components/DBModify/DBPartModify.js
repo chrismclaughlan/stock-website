@@ -221,7 +221,7 @@ class DBPartModify extends DBModify{
                     className="AppButton"
                     onClick={!this.state.buttonDisabled ? (e) => this.doExecute(e) : null}
                   >
-                    Submit
+                    Bekræft
                   </Button>
                 </Col>
 
