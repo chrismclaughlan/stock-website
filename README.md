@@ -9,6 +9,12 @@ DB_DATABASE='database'
 SESSION_SECRET='secret'
 ```
 
+Install packages:
+```
+/frontend ~ npm install
+/backend  ~ npm install
+```
+
 "Production":
 ```
 /frontend ~ npm run-script build
