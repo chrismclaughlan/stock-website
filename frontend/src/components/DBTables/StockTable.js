@@ -9,8 +9,13 @@ const QUERY_SIMILAR = 'similar=';
 
 class StockTable extends DBTable{
 
-  search(similar) {
-    super.searchAPI(similar, QUERY_ALL, QUERY_STRING, QUERY_SIMILAR);
+  search() {
+    this.searchAPI(this.state.search, this.state.searchSimilar, QUERY_ALL, QUERY_STRING, QUERY_SIMILAR);
+  }
+
+  searchLast() {
+    const searchString = (this.state.searchLast.string !== undefined) ? this.state.searchLast.string : '';
+    this.searchAPI(searchString, this.state.searchLast.similar, QUERY_ALL, QUERY_STRING, QUERY_SIMILAR);
   }
 
   async callRemove() {
@@ -31,7 +36,6 @@ class StockTable extends DBTable{
       return null
     }
 
-    // COMBINE ADD/SUB WITH BOOKCASE AND SHELF
     return (
       <div>
       <DBPartUpdate 
@@ -45,6 +49,14 @@ class StockTable extends DBTable{
     />
       </div>
     )
+  }
+
+  handleClick() {
+    console.log("CLICK")
+  }
+
+  useEffect() {
+    document.addEventListener("mousedown", this.handleClick);
   }
 
   renderHelpText() {
@@ -72,8 +84,8 @@ class StockTable extends DBTable{
 
   render() {    
     return (
-      <div className="StockTable">
-        {this.renderSearchBar('Search Part Names')}
+      <div ref={this.state.insideRef} className="StockTable">
+        {this.renderSearchBar('Søg')}
         {this.renderEdit()}
         {this.renderTable()}
       </div>

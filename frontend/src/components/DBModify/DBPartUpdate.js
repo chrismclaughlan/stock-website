@@ -3,15 +3,9 @@ import UserStore from '../../store/UserStore'
 
 class DBPartUpdate extends DBPartModify { 
 
-  doExecute(e) {
+  async doExecute(e) {
     e.preventDefault()
-
-    // Ensure quantity is negative
-    let val = this.state.partQuantity;
-    Math.abs(val);
-    this.setState({partQuantity: val});
-
-    this.execute('/api/parts/update', 'updated')
+    await this.execute('/api/parts/update', 'updated');
   }
 
   componentDidMount() {
@@ -29,7 +23,7 @@ class DBPartUpdate extends DBPartModify {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const {partName, partQuantity, partBookcase, partShelf} = this.props
+    const {partName} = this.props
 
     if (prevProps.partName === partName) {
         return;
@@ -37,7 +31,8 @@ class DBPartUpdate extends DBPartModify {
 
     this.setState({
         partName, 
-        partQuantity: '', 
+        partQuantityAdd: '',
+        partQuantitySubtract: '',
         partBookcase: '', 
         partShelf: '',
     })
@@ -51,7 +46,10 @@ class DBPartUpdate extends DBPartModify {
       name: {
         disable: true, placeholder: 'Name'
       },
-      quantity: {
+      quantityAdd: {
+        disable: !isAdmin, placeholder: '# To Add'
+      },
+      quantitySubtract: {
         disable: false, placeholder: '# To Remove'
       },
       bookcase: {
@@ -61,7 +59,7 @@ class DBPartUpdate extends DBPartModify {
         disable: !isAdmin, placeholder: 'Change Shelf'
       },
     }
-    return super.render('Update Part', properties);
+    return super.render('', properties);
   }
 }
 

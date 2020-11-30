@@ -2,13 +2,12 @@ import DBPartModify from './DBPartModify'
 
 class DBPartAdd extends DBPartModify { 
 
-  doExecute(e) {
-    e.preventDefault()
-    this.execute('/api/parts/add', 'added')
-  }
-
-  componentDidMount() {
-    super.componentDidMount();
+  async doExecute(e) {
+    e.preventDefault();
+    await this.execute('/api/parts/add', 'added');
+    this.setState({
+      partName: '', partQuantityAdd: '', partQuantitySubtract: '', partBookcase: '', partShelf: '',
+    })
   }
 
   render() {
@@ -16,8 +15,11 @@ class DBPartAdd extends DBPartModify {
       name: {
         disable: false, placeholder: 'Name'
       },
-      quantity: {
+      quantityAdd: {
         disable: false, placeholder: 'Quantity'
+      },
+      quantitySubtract: {
+        disable: true, placeholder: ''
       },
       bookcase: {
         disable: false, placeholder: 'Bookcase'

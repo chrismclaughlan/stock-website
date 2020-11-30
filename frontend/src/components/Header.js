@@ -13,9 +13,9 @@ class Header extends React.Component{
             <Navbar.Brand href="/">
               <img
                 alt=""
-                src="/potato100-64.png"
-                width="75"
-                height="48"
+                src="/lbt_200x60.png"
+                width="160"
+                height="50"
                 className="d-inline-block align-top"
               />
             </Navbar.Brand>

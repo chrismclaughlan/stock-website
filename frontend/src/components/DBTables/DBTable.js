@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import AlertPopup from '../AlertPopup'
 import {Table, Form, Container, Col, Button, ButtonGroup, Pagination, Modal} from 'react-bootstrap';
 import Loading from '../Loading'
@@ -6,8 +6,7 @@ import UserStore from '../../store/UserStore'
 const utils = require('../../Utils');
 
 const MAX_SEARCH_LENGTH = 255;
-const DEFAULT_ENTRIES_PER_PAGE = 15;
-
+const DEFAULT_ENTRIES_PER_PAGE = 16;
 
 class DBTable extends React.Component{
   constructor(props) {
@@ -34,6 +33,7 @@ class DBTable extends React.Component{
 
       // search: Search string sent to server. Used to search for names in table
       search: '',
+      searchLast: {},  // TODO
 
       // searchSimilar: When true server queries all names that start with what is contained in search string
       searchSimilar: false,
@@ -59,25 +59,32 @@ class DBTable extends React.Component{
 
       // showHelp: True displays modal containing helpful text about table
       showHelp: false,
+
+      insideRef: React.createRef(),
     }
+
+    this.handleClickOutside = this.handleClickOutside.bind(this);
   }
   
   // Perform search to fetch table entries
   componentDidMount() {
     this.search();
+    document.addEventListener('mousedown', this.handleClickOutside);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('mousedown', this.handleClickOutside);
+  }
+
+  handleClickOutside(e) {
+    if (this.state.insideRef && !this.state.insideRef.current.contains(e.target)) {
+      this.resetEdit();
+    }
   }
 
   // Performs query for search with different query properties
-  searchAPI(similar, api_query_all, api_query_string, api_query_similar) {
-    if (similar === undefined) {
-      similar = this.state.searchSimilar;
-    } else {
-      this.setState({
-        searchSimilar: similar,
-      })
-    }
+  searchAPI(searchString, similar, api_query_all, api_query_string, api_query_similar) {
 
-    let searchString = this.state.search;
     searchString = searchString.toLowerCase();
 
     if (searchString.length === 0) {
@@ -93,7 +100,9 @@ class DBTable extends React.Component{
   searchE(e, similar) {
     e.preventDefault();
     this.resetLastRowStyle();
-    this.search(similar);
+    this.setState({
+      searchSimilar: similar,
+    }, this.search);
   };
 
   // Posts request to server to remove a table entry
@@ -126,7 +135,7 @@ class DBTable extends React.Component{
           },
           disableButton: false,
         });
-        this.componentDidMount();
+        this.searchLast();
       }
       else if (result && result.success === false)
       {
@@ -172,7 +181,8 @@ class DBTable extends React.Component{
           disableButton: false,
           entries: result.results,
           query: result.query,
-        })
+          searchLast: {string: result.query.string, similar: result.query.similar},
+        }, this.resetEdit)
       } else {          
         let reason;
         if (result.query && result.query.string) {
@@ -219,16 +229,22 @@ class DBTable extends React.Component{
   // Handles event to reset search and table
   reset(e) {
     e.preventDefault()
+    this.setState({
+      search: '', 
+      searchLast: {},
+    }, this.resetEdit)
+    this.search();
+  }
+
+  resetEdit() {
     if (this.state.lastRow) {
       this.state.lastRow.setAttribute("style", "");
     }
     this.setState({
-      search: '', 
       editRow: null,
       editColumn: null,
       lastRow: null
-    })
-    this.search();
+    })  
   }
 
   renderSearchResults() {
@@ -243,7 +259,7 @@ class DBTable extends React.Component{
     )
   }
 
-  renderSearchBar(placeholder) {    
+  renderSearchBar(placeholder) {
     return (
       <div className="SearchBar">
         <Form inline noValidate 
@@ -312,14 +328,6 @@ class DBTable extends React.Component{
         return (
             <tr className="hidden-button-parent">
               {
-                (UserStore.privileges > 0 && showColumns.includes('Delete')) ?
-                <th key={-1}>
-                  Delete
-                </th>
-                :
-                null
-              }
-              {
                   Object.keys(entries[0]).map(function(key, index) {
                         if (showColumns.includes(key)) {
                             return <th key={index}>{key}</th>
@@ -328,6 +336,14 @@ class DBTable extends React.Component{
                         }
                       }
                   )
+              }
+              {
+                (UserStore.privileges > 0 && showColumns.includes('Delete')) ?
+                <th key={-1}>
+                  Delete
+                </th>
+                :
+                null
               }
             </tr>
         )
@@ -343,7 +359,7 @@ class DBTable extends React.Component{
     }
     
     const index = e.currentTarget.getAttribute('index');
-    e.currentTarget.parentElement.setAttribute("style", "background-color: rgba(135,206,235, 0.3); box-shadow: 0px 0px 5px 2px #dee2e6");
+    e.currentTarget.parentElement.setAttribute("style", "background-color: rgba(135,206,235, 0.4) !important; border-left: 15px solid rgb(250, 223, 25) !important;");
     this.setState({editRow: this.state.entries[index]})
     this.setState({editColumn: key})
     this.setState({lastRow: e.currentTarget.parentElement})
@@ -361,7 +377,7 @@ class DBTable extends React.Component{
     if (this.state.lastRow) {
       this.state.lastRow.setAttribute("style", "background-color: rgba(154,205,50, 0.5); box-shadow: 0px 0px 5px 2px #dee2e6");
     }
-    this.componentDidMount();
+    this.searchLast();
   }
 
   // Callback for unsuccessful search
@@ -369,7 +385,7 @@ class DBTable extends React.Component{
     if (this.state.lastRow) {
       this.state.lastRow.setAttribute("style", "background-color: rgba(255,228,181, 0.5); box-shadow: 0px 0px 5px 2px #dee2e6");
     }
-    this.componentDidMount();
+    //this.searchLast();
   }
 
   // Closes entry deletion modal
@@ -379,15 +395,13 @@ class DBTable extends React.Component{
 
   // Confirms entry deletion
   confirmDelete() {
-    const url = this.props.tableQueries.remove.url;
-    const data = {[this.props.tableQueries.remove.outsideProperty]: [{[this.props.tableQueries.remove.insideProperty]: this.state.nameToDelete}]};
-    this.callRemove(url, data);
+    this.callRemove();
     this.setState({nameToDelete: ''});
   }
 
   // Grabs name of entry to delete
   deleteByName(e) {
-    const partName = e.currentTarget.parentElement.parentElement.getElementsByTagName('td')[1].innerHTML;
+    const partName = e.currentTarget.parentElement.parentElement.getElementsByTagName('td')[0].innerHTML;  // first td tag should be name/entry identifier
 
     this.setState({nameToDelete: partName});
   }
@@ -438,8 +452,8 @@ class DBTable extends React.Component{
         
         arrEntriesDivided.push(
           <tr key={i}className="hidden-button-parent" >
-            {button}
             {arrEntries[i]}
+            {button}
           </tr>
         )
       }
@@ -521,7 +535,7 @@ class DBTable extends React.Component{
       <div>
         <div className="DBTable">
 
-          <Table className="hidden-button-p-parent" striped bordered size="sm">
+          <Table className="hidden-button-p-parent" striped bordered size="sm" ref={this.insideRef}>
               <thead>
                   {this.renderTableHeadings()}
               </thead>
@@ -587,9 +601,9 @@ class DBTable extends React.Component{
     )
   }
 
-  search(similar) {
-    this.searchAPI(similar, this.props.tableQueries.search.url, this.props.tableQueries.search.string, this.props.tableQueries.search.similar);
-  }
+  // search() {
+  //   this.searchAPI(this.state.searchSimilar, this.props.tableQueries.search.url, this.props.tableQueries.search.string, this.props.tableQueries.search.similar);
+  // }
 
   render () {
     return (

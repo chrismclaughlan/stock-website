@@ -18,7 +18,8 @@ class DBPartModify extends DBModify{
         variant: '',
       },
       partName: '',
-      partQuantity: '',
+      partQuantityAdd: '',
+      partQuantitySubtract: '',
       partBookcase: '',
       partShelf: '',
       maxSearchLength: MAX_SEARCH_LENGTH,
@@ -31,6 +32,31 @@ class DBPartModify extends DBModify{
   async execute(url, successMessage) {
     this.setState({buttonDisabled: true});
 
+    let quantity;
+    if (! this.state.partQuantityAdd && !this.state.partQuantitySubtract) {
+      quantity = undefined;
+    } else {
+      let qAdd, qSub;
+
+      if (this.state.partQuantityAdd) {
+        qAdd = parseInt(this.state.partQuantityAdd, 10);
+        if (isNaN(qAdd)) {
+          this.setState({error: {message: `Invalid quantity to add`, variant: 'warning'},buttonDisabled: false,})
+          return;
+        }
+      }
+
+      if (this.state.partQuantitySubtract) {
+        qSub = parseInt(this.state.partQuantitySubtract, 10);
+        if (isNaN(qSub)) {
+          this.setState({error: {message: `Invalid quantity to subtract`, variant: 'warning'},buttonDisabled: false,})
+          return;
+        }
+      }
+
+      quantity = (isNaN(qAdd) ? 0 : Math.abs(qAdd)) - (isNaN(qSub) ? 0 : Math.abs(qSub));
+    }
+
     fetch(url, {
       method: 'post',
       headers: {
@@ -41,7 +67,7 @@ class DBPartModify extends DBModify{
         parts: [
           {
             name: this.state.partName,
-            quantity: this.state.partQuantity,
+            quantity,
             bookcase: this.state.partBookcase,
             shelf: this.state.partShelf,
           }
@@ -59,7 +85,10 @@ class DBPartModify extends DBModify{
             variant: 'success'
           },
           buttonDisabled: false,
-          partQuantity: '',  // Reset quantity when sucessful
+          
+          // Reset quantity when sucessful
+          partQuantityAdd: '',
+          partQuantitySubtract: '',
         });
         if (this.props.onSuccess) {
           this.props.onSuccess();
@@ -95,10 +124,10 @@ class DBPartModify extends DBModify{
   }
 
   componentDidMount() {
-    const {partName, partQuantity, partBookcase, partShelf} = this.props
+    const {partName} = this.props
     
     this.setState({
-        partName, partQuantity, partBookcase, partShelf
+        partName
     })
 
     this.textInput.focus();
@@ -119,7 +148,7 @@ class DBPartModify extends DBModify{
             >
               <Form.Label className="FormLabel">{title}</Form.Label>
               <Form.Row>
-                <Col xs="auto" lg="5">
+                <Col xs="auto" lg="3">
                   <Form.Control
                     readOnly={properties.name.disable}
                     placeholder={properties.name.placeholder}
@@ -127,31 +156,64 @@ class DBPartModify extends DBModify{
                     onChange={(e) => this.setProperty('partName', e)}
                   />
                 </Col>
-                <Col xs="auto" lg="2">
-                  <Form.Control 
-                    readOnly={properties.quantity.disable}
-                    placeholder={properties.quantity.placeholder}
-                    value={(this.state.partQuantity)}
-                    onChange={(e) => this.setProperty('partQuantity', e)}
-                    ref={elem => (this.textInput = elem)}
-                  />
-                </Col>
-                <Col xs="auto" lg="2">
-                  <Form.Control 
-                    readOnly={properties.bookcase.disable}
-                    placeholder={properties.bookcase.placeholder}
-                    value={this.state.partBookcase}
-                    onChange={(e) => this.setProperty('partBookcase', e)}
-                  />
-                </Col>
-                <Col xs="auto" lg="2">
-                  <Form.Control 
-                    readOnly={properties.shelf.disable}
-                    placeholder={properties.shelf.placeholder}
-                    value={this.state.partShelf}
-                    onChange={(e) => this.setProperty('partShelf', e)}
-                  />
-                </Col>
+                  {
+                    (properties.quantityAdd.disable) ? 
+                    null 
+                    :
+                    <Col xs="auto" lg="2">
+                    <Form.Control 
+                      readOnly={this.state.partQuantitySubtract !== '' ? true : false}
+                      placeholder={properties.quantityAdd.placeholder}
+                      value={(this.state.partQuantityAdd)}
+                      onChange={(e) => this.setProperty('partQuantityAdd', e)}
+                      ref={elem => (this.textInput = elem)}
+                    />
+                  </Col>
+                  }
+                  {
+                  (properties.quantitySubtract.disable) ? 
+                  null 
+                  :
+                  <Col xs="auto" lg={2 + (properties.quantityAdd.disable ? 2 : 0) + (properties.bookcase.disable ? 2 : 0) + (properties.shelf.disable ? 2 : 0)}>
+                    <Form.Control 
+                      readOnly={this.state.partQuantityAdd !== '' ? true : false}
+                      placeholder={properties.quantitySubtract.placeholder}
+                      value={(this.state.partQuantitySubtract)}
+                      onChange={(e) => this.setProperty('partQuantitySubtract', e)}
+                      ref={elem => (this.textInput = elem)}
+                    />
+                  </Col>
+                  }
+
+                  {
+                  (properties.bookcase.disable) ? 
+                  null 
+                  :
+                  <Col xs="auto" lg="2">
+ 
+                      <Form.Control 
+                        readOnly={properties.bookcase.disable}
+                        placeholder={properties.bookcase.placeholder}
+                        value={this.state.partBookcase}
+                        onChange={(e) => this.setProperty('partBookcase', e)}
+                      />
+                  </Col>
+                    }
+
+                  {
+                    (properties.shelf.disable) ? 
+                    null 
+                    :
+                  <Col xs="auto" lg="2">
+
+                    <Form.Control 
+                      readOnly={properties.shelf.disable}
+                      placeholder={properties.shelf.placeholder}
+                      value={this.state.partShelf}
+                      onChange={(e) => this.setProperty('partShelf', e)}
+                    />
+                  </Col>
+                    }
                 <Col xs="auto" lg="1">
                   <Button 
                     variant="primary" 

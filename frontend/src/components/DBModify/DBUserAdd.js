@@ -2,10 +2,12 @@ import DBUserModify from './DBUserModify'
 
 class DBUserAdd extends DBUserModify { 
 
-  doExecute(e) {
+  async doExecute(e) {
     e.preventDefault()
-
-    this.execute('/api/users/add', 'added')
+    await this.execute('/api/users/add', 'added')
+    this.setState({
+      username: '', password: '', privileges: '',
+    })
   }
 
   componentDidMount() {

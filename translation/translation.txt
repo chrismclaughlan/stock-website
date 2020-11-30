@@ -1,0 +1,39 @@
+Search=Søg
+Delete=Slet
+Search Similar=Søg Ligende
+Reset=
+Signed in as=Logged på som
+Home=Hjem
+My Logs=Logs
+Admin Panel=Admin Panel
+Help=Hjælp
+Account=
+Sign in=Log ind
+Sign out=Log ud
+Submit=Bekræft
+New Password=Nyt Kodeord
+Users=Brugerer
+Parts=Dele
+Logs=Log
+Add User=Tilføj Bruger
+Are you sure you want to delete ...?=Er du sikker på du gerne vil slette ...?
+Deleting Part=Slet Del
+Query successful=Kø Fuldført
+Query unsuccessful=Kø Ikke Fuldført
+... Could not find ... in database=... Kunne ikke finde ... i databasen
+Error updating entry. Incorrect value(s) for column(s)=
+
+
+Change in DB:
+users: username, privileges
+parts: name, quantity, bookcase, shelf
+
+bruger: brugernavn, tiladelser
+Del: navn, antal, reol, hylde
+
+Change Bookcase= Ændre reol
+Back = tilbage
+Add... = tilføj
+Usernames=brugernavne
+
+# to remove = Mængde taget

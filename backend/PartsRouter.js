@@ -26,14 +26,14 @@ class PartsRouter {
             let {name, quantity, bookcase, shelf} = part;
 
             name = name.trim().toLowerCase();
-            quantity = (quantity !== undefined) ? Math.abs(part.quantity) : null;
+            quantity = (quantity !== undefined) ? part.quantity : null;
 
             /* Construct query */
 
             query = 'UPDATE parts SET ';
 
             if (quantity) {
-                query += 'quantity = quantity - ?';
+                query += 'quantity = quantity + ?';
                 cols.push(quantity);
             }
 
