@@ -13,6 +13,7 @@ SESSION_SECRET='secret'
 ```
 /frontend ~ npm run-script build
 ```
+Copy /build folder into ../backend/
 ```
 /backend  ~ npm start
 ```
