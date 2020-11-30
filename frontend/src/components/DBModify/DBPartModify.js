@@ -59,6 +59,7 @@ class DBPartModify extends DBModify{
             variant: 'success'
           },
           buttonDisabled: false,
+          partQuantity: '',  // Reset quantity when sucessful
         });
         if (this.props.onSuccess) {
           this.props.onSuccess();
