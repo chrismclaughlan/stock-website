@@ -44,10 +44,10 @@ class AdminPanel extends React.Component{
     }
     switch(this.state.tab)
     {
-        case "Users":
+        case "Brugere":
             content = <AdminPanelUsers />
             break;
-        case "Parts":
+        case "Dele":
             content = <AdminPanelParts />
             break;
         case "Logs":
