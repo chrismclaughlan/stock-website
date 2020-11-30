@@ -9,7 +9,6 @@ import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css'
 import StockTable from './components/DBTables/StockTable';
 import MyLogsTable from './components/DBTables/MyLogsTable'
-import TestTable from './components/DBTables/TestTable'
 
 import Header from './components/Header'
 import Account from './components/Account'
@@ -140,12 +139,6 @@ class App extends React.Component{
             <Route exact path="/">
               <div className="container">
                 <StockTable showColumns={["Delete", "name", "quantity", "bookcase", "shelf"]}/>
-              </div>
-            </Route>
-
-            <Route exact path="/TestTable">
-              <div className="container">
-                <TestTable />
               </div>
             </Route>
 
