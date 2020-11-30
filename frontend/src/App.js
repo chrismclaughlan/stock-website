@@ -16,6 +16,8 @@ import AdminPanel from './components/AdminPanel/AdminPanel'
 
 import {BrowserRouter, Switch, Route} from 'react-router-dom'
 
+const utils = require('./Utils');
+
 class App extends React.Component{
 
   constructor(props) {
@@ -30,18 +32,16 @@ class App extends React.Component{
   }
 
   async componentDidMount() {
-
-    try {
-      let res = await fetch('/isLoggedIn', {
-        method: 'post',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
-      });
-
-      let result = await res.json();
-
+    fetch('/isLoggedIn', {
+      method: 'post',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(utils.handleFetchError)
+    .then(res => res.json())
+    .then((result) => {
       if (result && result.success) {
         UserStore.loading = false;
         UserStore.isLoggedIn = true;
@@ -53,41 +53,51 @@ class App extends React.Component{
         UserStore.username = '';
         UserStore.privileges = 0;
       }
+    })
+    .catch((err) => {
 
-    } catch (e) {
+      console.log(`Error trying to fetch '/isLoggedIn': '${err}'`)
 
-      console.log(`Error trying to fetch '/isLoggedIn': '${e}'`)
       UserStore.loading = false;
       UserStore.isLoggedIn = false;
       UserStore.username = '';
       UserStore.privileges = 0;
-      this.setState({connectionError: {message: 'Error checking login status', variant: 'danger'}})
-    }
+
+      this.setState({
+        connectionError: {
+          message: `Error checking login status: ${err}`, 
+          variant: 'danger'
+        }
+      })
+    })
   }
 
   async doLogout() {
-
-    try {
-      let res = await fetch('/logout', {
-        method: 'post',
-        headers: {
-          'Accept': 'application/json',
-          'Content-type': 'application/json'
-        }
-      });
-
-      let result = await res.json();
-
+    fetch('/logout', {
+      method: 'post',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(utils.handleFetchError)
+    .then(res => res.json())
+    .then((result) => {
       if (result && result.success) {
         UserStore.isLoggedIn = false;
         UserStore.username = '';
         UserStore.privileges = 0;
       }
-    }
-    catch (e) {
-      console.log(`Error trying to fetch '/logout': '${e}'`)
-      this.setState({connectionError: {message: 'Error trying to logout', variant: 'danger'}})
-    }
+    })
+    .catch((err) => {
+      console.log(`Error trying to fetch '/logout': '${err}'`)
+      this.setState({
+        connectionError: {
+          message: `Error trying to logout: ${err}`, 
+          variant: 'danger'
+        }
+      })
+    })
   }
 
   render() {

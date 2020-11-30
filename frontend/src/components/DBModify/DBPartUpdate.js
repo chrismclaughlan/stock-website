@@ -23,7 +23,9 @@ class DBPartUpdate extends DBPartModify {
       //partQuantity, 
       //partBookcase, 
       //partShelf,
-  })
+    })
+  
+    this.textInput.focus();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -41,16 +43,6 @@ class DBPartUpdate extends DBPartModify {
     })
 
     this.textInput.focus();
-  }
-
-  setProperty(property, e) {
-    let val = e.currentTarget.value;
-    val.trim()
-    if (val.length > this.state.maxSearchLength) {
-      return;
-    }
-
-    this.setState({[property]: val})
   }
 
   render() {

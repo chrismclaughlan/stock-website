@@ -2,6 +2,7 @@ import React from 'react';
 import {Form, Col, Button} from 'react-bootstrap'
 import AlertPopup from '../AlertPopup';
 import DBModify from './DBModify';
+const utils = require('../../Utils');
 
 const MAX_SEARCH_LENGTH = 64;
 
@@ -18,50 +19,73 @@ class DBUserModify extends DBModify{
         },
         username: '',
         password: '',
+        privileges: '',
         maxSearchLength: MAX_SEARCH_LENGTH,
-        textInput: null,
     }
   }
 
   async execute(url, successMessage) {
-    try
-    {
-        let res = await fetch(url, {
-            method: 'post',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({users: [{
-                username: this.state.username,
-                password: this.state.password,
-            }]}
-            )
-        });
+    this.setState({buttonDisabled: true});
 
-        let result = await res.json();
-        if (result && result.success) {
-          this.setState({error: {message: `Successfully ${successMessage} ${this.state.username}`, variant: 'success'}});
-          if (this.props.onSuccess) {
-            this.props.onSuccess();
+    fetch(url, {
+      method: 'post',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        users: [
+          {
+            username: this.state.username,
+            password: this.state.password,
+            privileges: this.state.privileges,
           }
+        ]
+      }),
+    })
+    .then(utils.handleFetchError)
+    .then(res => res.json())
+    .then((result) => {
+
+      if (result && result.success) {
+        this.setState({
+          error: {
+            message: `Successfully ${successMessage} ${this.state.username}`, 
+            variant: 'success'
+          },
+          buttonDisabled: false,
+        });
+        if (this.props.onSuccess) {
+          this.props.onSuccess();
         }
-        else if (result && result.success === false)
-        {
-          this.setState({error: {message: result.msg, variant: 'warning'}});
-          if (this.props.onFailure) {
-            this.props.onFailure();
-          }
-        }
-    }
-    catch(e)
-    {
-        console.log(e);
-        this.setState({error: {message: 'An Error occured', variant: 'danger'}});
+      }
+      else if (result && result.success === false)
+      {
+        this.setState({
+          error: {
+            message: result.msg, 
+            variant: 'warning'
+          },
+          buttonDisabled: false,
+        });
         if (this.props.onFailure) {
           this.props.onFailure();
         }
-    }
+      }
+    })
+    .catch((err) => {
+      console.log(`Error trying to fetch '${url}': '${err}'`)
+      if (this.props.onFailure) {
+        this.props.onFailure();
+      }
+      this.setState({
+        error: {
+          message: `An Error occured: ${err}`, 
+          variant: 'danger'
+        },
+        buttonDisabled: false,
+      })
+    })
   }
 
   componentDidMount() {
@@ -70,13 +94,14 @@ class DBUserModify extends DBModify{
     this.setState({
         username, password
     })
-
-    this.textInput.focus();
   }
 
   setProperty(property, e) {
     let val = e.currentTarget.value;
-    val.trim()
+    if (property !== 'password') {
+      val = val.trim();
+    }
+
     if (val.length > this.state.maxSearchLength) {
       return;
     }
@@ -86,7 +111,6 @@ class DBUserModify extends DBModify{
 
   render(title, properties) {
     let isValidated = false
-    let buttonDisabled = false
 
       return (
         <div className="DBModify">
@@ -113,9 +137,17 @@ class DBUserModify extends DBModify{
                     required={!properties.password.disable}
                     readOnly={properties.password.disable}
                     placeholder={properties.password.placeholder}
-                    value={(this.state.password)}
+                    value={this.state.password}
                     onChange={(e) => this.setProperty('password', e)}
-                    ref={elem => (this.textInput = elem)}
+                  />
+                </Col>
+                <Col xs="auto" lg="2">
+                  <Form.Control 
+                    required={!properties.privileges.disable}
+                    readOnly={properties.privileges.disable}
+                    placeholder={properties.privileges.placeholder}
+                    value={(this.state.privileges)}
+                    onChange={(e) => this.setProperty('privileges', e)}
                   />
                 </Col>
                 <Col xs="auto" lg="1">
@@ -123,7 +155,7 @@ class DBUserModify extends DBModify{
                     variant="primary" 
                     type="submit"
                     className="AppButton"
-                    onClick={!buttonDisabled ? (e) => this.doExecute(e) : null}
+                    onClick={!this.state.buttonDisabled ? (e) => this.doExecute(e) : null}
                   >
                     Submit
                   </Button>

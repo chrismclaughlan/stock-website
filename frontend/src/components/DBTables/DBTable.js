@@ -3,7 +3,7 @@ import AlertPopup from '../AlertPopup'
 import {Table, Form, Container, Col, Button, ButtonGroup, Pagination, Modal} from 'react-bootstrap';
 import Loading from '../Loading'
 import UserStore from '../../store/UserStore'
-
+const utils = require('../../Utils');
 
 const MAX_SEARCH_LENGTH = 255;
 const DEFAULT_ENTRIES_PER_PAGE = 15;
@@ -14,33 +14,60 @@ class DBTable extends React.Component{
     super(props);
 
     this.state = {
+      // query: Contains query returned from server that contains info on original query to server, used to observe what went wrong
       query: null,
+
+      // entries: Contains entries returned from server to fill table with
       entries: null,
+
+      // isLoading: True if loading/fetching data. Used to display loading spinner
       isLoading: false,
+
+      // disableButton: True if busy fetching results, prevents user from issuing duplicate requests
+      disableButton: false,
+
+      // error: Contains info on how to display error. Used to display wh query went wrong
       error: {
         message: null,
         variant: null,
       },
+
+      // search: Search string sent to server. Used to search for names in table
       search: '',
+
+      // searchSimilar: When true server queries all names that start with what is contained in search string
       searchSimilar: false,
+
       maxSearchLength: MAX_SEARCH_LENGTH,
-      editColumn: null,
-      editRow: null,
-      lastRow: null,
 
-      page: 0,
-      entriesPerPage: DEFAULT_ENTRIES_PER_PAGE,
-
+      // nameToDelete: Contains the name of the entry where "Delete" button was pressed
       nameToDelete: '',
 
+      // editColumn: Contains the name of the column clicked on in table
+      editColumn: null,
+
+      // editRow: Contains entry information of the table row that was clicked
+      editRow: null,
+
+      // lastRow: Contains parent element ("row" or <tr> element) of table entry clicked
+      lastRow: null,
+
+      // page: Current page of entries to show
+      page: 0,
+
+      entriesPerPage: DEFAULT_ENTRIES_PER_PAGE,
+
+      // showHelp: True displays modal containing helpful text about table
       showHelp: false,
     }
   }
   
+  // Perform search to fetch table entries
   componentDidMount() {
     this.search();
   }
 
+  // Performs query for search with different query properties
   searchAPI(similar, api_query_all, api_query_string, api_query_similar) {
     if (similar === undefined) {
       similar = this.state.searchSimilar;
@@ -62,65 +89,101 @@ class DBTable extends React.Component{
     }
   }
   
+  // Handles search from event
   searchE(e, similar) {
     e.preventDefault();
     this.resetLastRowStyle();
     this.search(similar);
   };
 
+  // Posts request to server to remove a table entry
   async callRemove(url, data) {
+    this.setState({disableButton: true});
+
     const nameToDelete = this.state.nameToDelete;
     if (!nameToDelete) {
       console.log('no name to delete')
       return;
     }
 
-    try {
+    fetch(url, {
+      method: 'post',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data),
+    })
+    .then(utils.handleFetchError)
+    .then(res => res.json())
+    .then((result) => {
 
-      let res = await fetch(url, {
-        method: 'post',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-
-      let result = await res.json();
       if (result && result.success) {
-        this.setState({error: {message: `Successfully deleted ${nameToDelete}`, variant: 'success'}});
+        this.setState({
+          error: {
+            message: `Successfully deleted ${nameToDelete}`, 
+            variant: 'success',
+          },
+          disableButton: false,
+        });
         this.componentDidMount();
       }
       else if (result && result.success === false)
       {
-        this.setState({error: {message: `Failed to delete ${nameToDelete}`, variant: 'warning'}});
+        this.setState({
+          error: {
+            message: `Failed to delete ${nameToDelete}`, 
+            variant: 'warning',
+          },
+          disableButton: false,
+        });
       }
-
-    } catch(e) {
-      this.setState({error: {message: `Error delteting ${nameToDelete}`, variant: 'danger'}});
-    }
+    })
+    .catch((err) => {
+      console.log(`Error trying to fetch '${url}': '${err}'`)
+      this.setState({
+          error: {
+              message: `Error deleting ${nameToDelete}: ${err}`, 
+              variant: 'danger',
+        },
+        disableButton: false,
+      })
+    })
   }
 
+  // Gets request from server to fill table entries
   query(url) {
-    this.setState({error: {message: null, variant: null}})
+    this.setState({
+      error: {
+        message: null, 
+        variant: null,
+      },
+      disableButton: true,
+    })
 
     fetch(url)
-    .then(res => {
-      if (res.ok) {
-        return res = res.json();
-      } else {
+    .then(utils.handleFetchError)
+    .then(res => res.json())
+    .then((result) => {
+      
+      if (result.successful) {
+        this.setState({
+          isLoading: false, 
+          disableButton: false,
+          entries: result.results,
+          query: result.query,
+        })
+      } else {          
         let reason;
-        switch(res.status) {
-          case 401:
-            reason = 'Access denied: Not authenticated (401)'; break;
-          case 403:
-            reason = 'Access denied: Not authorised (403)'; break;
-          default:
-            reason = `(${res.status})`; break;
+        if (result.query && result.query.string) {
+          reason = `Could not find  ${result.query.string}  in database`;
+        } else {
+          reason = 'Could not find any entries in database';
         }
 
         this.setState({
           isLoading: false,
+          disableButton: false,
           query: null, 
           error: {
             message: `Query unsuccessful. ${reason}`, 
@@ -129,48 +192,21 @@ class DBTable extends React.Component{
         });
       }
     })
-    .then(
-      (result) => {
-        if (!result) {
-          return;
-        }
-        
-        if (result.successful) {
-          this.setState({
-            isLoading: false, 
-            entries: result.results,
-            query: result.query,
-          })
-        } else {          
-          let reason;
-          if (result.query && result.query.string) {
-            reason = `Could not find  ${result.query.string}  in database`;
-          } else {
-            reason = 'Could not find any entries in database';
-          }
-
-          this.setState({
-            isLoading: false,
-            query: null, 
-            error: {
-              message: `Query unsuccessful. ${reason}`, 
-              variant: "warning",
-            },
-          });
-        }
-      },
-      (error) => {
-        this.setState({
-          isLoading: false, 
-          query: null, 
-          error: {
-            message: 'Error trying to query database',
-            variant: 'danger',
-          }})
-      }
-    )
+    .catch((err) => {
+      console.log(`Error trying to fetch '${url}': '${err}'`)
+      this.setState({
+        isLoading: false, 
+        disableButton: false,
+        query: null, 
+        error: {
+          message: 'Error trying to query database',
+          variant: 'danger',
+        },
+      })
+    })
   }
 
+  // Handles user input for search string
   setSearchValue(val) {
     val.trim()
     if (val.length > this.state.maxSearchLength) {
@@ -180,7 +216,8 @@ class DBTable extends React.Component{
     this.setState({search: val})
   }
 
-  searchReset(e) {
+  // Handles event to reset search and table
+  reset(e) {
     e.preventDefault()
     if (this.state.lastRow) {
       this.state.lastRow.setAttribute("style", "");
@@ -191,11 +228,11 @@ class DBTable extends React.Component{
       editColumn: null,
       lastRow: null
     })
-    this.componentDidMount();
+    this.search();
   }
 
   renderSearchResults() {
-    if (!this.state.query || !this.state.query.string || !(this.state.query.string.length > 0) || !this.state.entries || !(this.state.entries.length > 0)) {
+    if (!this.state.query || !this.state.query.string || !this.state.entries || !(this.state.entries.length > 0)) {
       return null
     }
     
@@ -206,16 +243,13 @@ class DBTable extends React.Component{
     )
   }
 
-  renderSearchBar(placeholder) {
-    let isValidated = false
-    let buttonDisabled = false
+  renderSearchBar(placeholder) {    
     return (
       <div className="SearchBar">
         <Form inline noValidate 
-        validated={isValidated} 
 
         // Default to normal search
-        onSubmit={!buttonDisabled ? (e) => this.searchE(e, false) : null}
+        onSubmit={!this.state.buttonDisabled ? (e) => this.searchE(e, false) : null}
         >    
           <Container fluid>
                 <Form.Row 
@@ -238,14 +272,14 @@ class DBTable extends React.Component{
                     <Button
                       type="submit" 
                       className="AppButton mb-2 mr-sm-2"
-                      onClick={!buttonDisabled ? (e) => this.searchE(e, false) : null}
+                      onClick={!this.state.buttonDisabled ? (e) => this.searchE(e, false) : null}
                       >
                         Search
                     </Button>
                     <Button
                       type="submit" 
                       className="AppButton mb-2 mr-sm-2"
-                      onClick={!buttonDisabled ? (e) => this.searchE(e, true) : null}
+                      onClick={!this.state.buttonDisabled ? (e) => this.searchE(e, true) : null}
                       >
                         Search Similar
                     </Button>
@@ -253,9 +287,9 @@ class DBTable extends React.Component{
                       type="submit" 
                       className="AppButton mb-2 mr-sm-2"
                       style={{paddingRight: "20px"}}
-                      onClick={!buttonDisabled ? (e) => this.searchReset(e) : null}
-                      >
-                        Reset
+                      onClick={!this.state.buttonDisabled ? (e) => this.reset(e) : null}
+                    >
+                      Reset
                     </Button>
                     </ButtonGroup>
                   </div>
@@ -302,6 +336,7 @@ class DBTable extends React.Component{
       }
   }
 
+  // Handles event when clicking table entry. Will change css styling of row to indicate selection.
   setEdit(e, key) {
     if (this.state.lastRow) {
       this.state.lastRow.setAttribute("style", "");
@@ -314,13 +349,14 @@ class DBTable extends React.Component{
     this.setState({lastRow: e.currentTarget.parentElement})
   }
 
+  // Resets css styling of table entry selection
   resetLastRowStyle() {
     if (this.state.lastRow) {
       this.state.lastRow.setAttribute("style", "");
     }
   }
 
-  // Only called if successful
+  // Callback for successful search
   onUpdateSuccess() {
     if (this.state.lastRow) {
       this.state.lastRow.setAttribute("style", "background-color: rgba(154,205,50, 0.5); box-shadow: 0px 0px 5px 2px #dee2e6");
@@ -328,6 +364,7 @@ class DBTable extends React.Component{
     this.componentDidMount();
   }
 
+  // Callback for unsuccessful search
   onUpdateFailure() {
     if (this.state.lastRow) {
       this.state.lastRow.setAttribute("style", "background-color: rgba(255,228,181, 0.5); box-shadow: 0px 0px 5px 2px #dee2e6");
@@ -335,15 +372,18 @@ class DBTable extends React.Component{
     this.componentDidMount();
   }
 
+  // Closes entry deletion modal
   closeConfirmDelete() {
     this.setState({nameToDelete: ''});
   }
 
+  // Confirms entry deletion
   confirmDelete() {
     this.callRemove();
     this.setState({nameToDelete: ''});
   }
 
+  // Grabs name of entry to delete
   deleteByName(e) {
     const partName = e.currentTarget.parentElement.parentElement.getElementsByTagName('td')[1].innerHTML;
 
@@ -408,6 +448,7 @@ class DBTable extends React.Component{
     }
   }
 
+  // Changes page of entries to render
   changePage(e) {
     e.preventDefault();
     const index = e.currentTarget.getAttribute('index');

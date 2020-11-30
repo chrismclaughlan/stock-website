@@ -20,7 +20,8 @@ class DBModify extends React.Component{
 
   setProperty(property, e) {
     let val = e.currentTarget.value;
-    val.trim()
+    val = val.trim();
+
     if (val.length > this.state.maxSearchLength) {
       return;
     }

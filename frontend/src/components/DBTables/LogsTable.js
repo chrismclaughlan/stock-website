@@ -1,5 +1,6 @@
 import React from 'react';
 import DBTable from './DBTable'
+const utils = require('../../Utils');
 
 const QUERY_ALL = '/api/logs';
 const QUERY_STRING = 'username=';

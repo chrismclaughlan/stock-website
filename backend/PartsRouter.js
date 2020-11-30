@@ -12,23 +12,22 @@ class PartsRouter {
 
     update(app, db) {
         app.post('/api/parts/update', auth.userAuthenticated, (req, res) => {
+            let query, cols = [];
 
-            const parts = utils.getPartsFromReq(req, res);
-            if (!parts) {
-                return false;
-            }
+            /* Validate and retreive POST data */
 
-            let part = parts[0];
-            part.quantity = Math.abs(part.quantity);
+            if (! utils.validateRequest(req.body, ['parts'], res)) return;
+            const {parts} = req.body;
+            const part = parts[0];
 
-            const name = utils.getNameFromPart(part, res);
-            if (!name) {
-                return false;
-            }
+            if (! utils.validateRequest(part, ['name'], res)) return false;
+            let {name, quantity, bookcase, shelf} = part;
 
-            let cols = [];
-            let query;
-            const {quantity, bookcase, shelf} = part;
+            name = name.trim().toLowerCase();
+            quantity = (quantity !== undefined) ? Math.abs(part.quantity) : null;
+
+            /* Construct query */
+
             query = 'UPDATE parts SET ';
 
             if (quantity) {
@@ -56,6 +55,7 @@ class PartsRouter {
                 }
             }
 
+            // A minimum of 1 column has to be provided
             if (cols.length === 0) {
                 res.json({
                     success: false,
@@ -84,20 +84,24 @@ class PartsRouter {
 
     add(app, db) {
         app.post('/api/parts/add', auth.userAuthorised, (req, res) => {
+            let query, cols = [];
 
-            const parts = utils.getPartsFromReq(req, res);
-            if (!parts) {
-                return false;
-            }
+            /* Validate and retreive POST data */
 
+            if (! utils.validateRequest(req.body, ['parts'], res)) return;
+            const {parts} = req.body;
             const part = parts[0];
 
-            let cols = utils.getColsFromPart(part, res);
-            if (!cols) {
-                return false;
-            }
+            if (! utils.validateRequest(part, ['name', 'quantity', 'bookcase', 'shelf'], res)) return;
+            let {name, quantity, bookcase, shelf} = part;
+
+            name = name.trim().toLowerCase();
+
+            /* Construct query */
             
-            let query = 'INSERT INTO parts(quantity, bookcase, shelf, name) VALUS(?, ?, ?, ?)'
+            query = 'INSERT INTO parts(name, quantity, bookcase, shelf) VALUES(?, ?, ?, ?)'
+            cols = [name, quantity, bookcase, shelf];
+
             // let query = 'INSERT INTO parts(quantity, bookcase, shelf, name) SELECT ?, ?, ?, ? FROM users WHERE id = ? AND privileges >= ?'
             // cols.push(req.session.userID);
             // cols.push(auth.PRIVILIGES_ADMIN);
@@ -116,20 +120,24 @@ class PartsRouter {
 
     remove(app, db) {
         app.post('/api/parts/remove', auth.userAuthorised, (req, res) => {
-            const parts = utils.getPartsFromReq(req, res);
-            if (!parts) {
-                return false;
-            }
+            let query, cols = [];
 
+            /* Validate and retreive POST data */
+
+            if (! utils.validateRequest(req.body, ['parts'], res)) return;
+            const {parts} = req.body;
             const part = parts[0];
 
-            const name = utils.getNameFromPart(part, res);
-            if (!name) {
-                return false;
-            }
+            if (! utils.validateRequest(part, ['name'], res)) return;
+            let {name} = part;
+            
+            name = name.trim().toLowerCase();
 
-            let cols = [name];
-            let query = 'DELETE FROM parts WHERE name = ?';
+            /* Construct query */
+
+            query = 'DELETE FROM parts WHERE name = ?';
+            cols = [name];
+
             //query = dbManagement.limitQueryByPrivileges(query, cols, req.session.userID, auth.PRIVILIGES_ADMIN)
 
             const action = 'deleting';

@@ -33,6 +33,9 @@ class DBUserUpdate extends DBUserModify {
       password: {
         disable: false, placeholder: 'Password'
       },
+      privileges: {
+        disable: false, placeholder: 'Privileges'
+      },
     }
     return super.render('Update User', properties);
   }

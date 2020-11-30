@@ -2,6 +2,7 @@ import React from 'react';
 import UserStore from '../store/UserStore';
 import {Form, Button, FormControl, Container} from 'react-bootstrap'
 import AlertPopup from './AlertPopup'
+const utils = require('../Utils');
 
 
 class LoginForm extends React.Component{
@@ -22,10 +23,14 @@ class LoginForm extends React.Component{
     }
 
     setInputValue(property, val) {
-        val = val.trim();
-        if (val.length > 12) {
+        if (val.length > utils.MAX_CREDENTIALS_LEN[property]) {
             return;
         }
+
+        if (property !== 'password') {
+            val = val.trim();
+        }  // otherwise (for password) allow spaces before and after
+
         this.setState({
             [property]: val
         })
@@ -62,32 +67,36 @@ class LoginForm extends React.Component{
 
         this.setState({buttonDisabled: true});
 
-        try
-        {
-            let res = await fetch('/login', {
-                method: 'post',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    username: this.state.username,
-                    password: this.state.password
-                })
-            });
-
-            let result = await res.json();
+        fetch('/login', {
+            method: 'post',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: this.state.username,
+                password: this.state.password
+            }),
+          })
+          .then(utils.handleFetchError)
+          .then(res => res.json())
+          .then((result) => {
 
             if (!result) {
                 this.resetForm(true);
+                return;
             }
 
             if (result.success) {
                 UserStore.isLoggedIn = true;
                 UserStore.username = result.username;
                 UserStore.privileges = result.privileges;
-                this.setState({error: {message: '', variant: ''}});
-                return;
+                this.setState({
+                    error: {
+                        message: '', 
+                        variant: '',
+                    }
+                });
             } else {
                 this.resetForm(false);
                 this.setState({            
@@ -95,14 +104,17 @@ class LoginForm extends React.Component{
                     passwordIncorrect: result.passwordIncorrect,
                 })
             }
-
-            //console.log(`result=${result} and result.success=${result.success} and UserStore.isLoggedIn=${UserStore.isLoggedIn}`)
-        }
-        catch(e)
-        {
-            console.log(e);
+          })
+          .catch((err) => {
+            console.log(`Error trying to fetch '/login': '${err}'`)
             this.resetForm(true);
-        }
+            this.setState({
+                error: {
+                    message: `Error trying to login: ${err}`, 
+                    variant: 'danger'
+              }
+            })
+          })
     }
 
     render() {

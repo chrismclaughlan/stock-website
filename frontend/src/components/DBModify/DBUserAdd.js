@@ -20,6 +20,9 @@ class DBUserAdd extends DBUserModify {
       password: {
         disable: false, placeholder: 'Password'
       },
+      privileges: {
+        disable: false, placeholder: 'Privileges'
+      },
     }
     return super.render('Add User', properties);
   }

@@ -1,6 +1,7 @@
 import React from 'react';
 import DBTable from './DBTable'
 import DBUserUpdate from '../DBModify/DBUserUpdate'
+const utils = require('../../Utils');
 
 const QUERY_ALL = '/api/users';
 const QUERY_STRING = 'username=';

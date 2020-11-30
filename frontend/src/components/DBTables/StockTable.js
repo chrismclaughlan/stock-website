@@ -1,6 +1,7 @@
 import React from 'react';
 import DBTable from './DBTable'
 import DBPartUpdate from '../DBModify/DBPartUpdate';
+const utils = require('../../Utils');
 
 const QUERY_ALL = '/api/parts';
 const QUERY_STRING = 'name=';
@@ -30,7 +31,6 @@ class StockTable extends DBTable{
       return null
     }
 
-    // COMBINE ADD/SUB WITH BOOKCASE AND SHELF
     return (
       <div>
       <DBPartUpdate 

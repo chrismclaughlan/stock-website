@@ -4,6 +4,8 @@ const auth = require('./Auth');
 const utils = require('./Utils');
 
 const {CONSOLE_RED, CONSOLE_YELLOW, CONSOLE_GREEN} = utils;
+const MAX_USERNAME_LEN = 12;
+const MAX_PASSWORD_LEN = 12;
 
 class SessionRouter {
 
@@ -15,27 +17,25 @@ class SessionRouter {
 
     login(app, db) {
         app.post('/login', (req, res) => {
-            let username = req.body.username;
-            let password = req.body.password;
+            let query, cols = [];
 
-            if (username === undefined || password === undefined) {
-                return res.json({
-                    success: false,
-                    msg: 'An error occured'
-                })
-            }
+            /* Validate and retreive POST data */
 
-            username = username.toLowerCase();
+            if (! utils.validateRequest(req.body, ['username', 'password'], res)) return false;
+            let {username, password} = req.body;
 
-            if (username.length > 12 || password.length > 12) {
-                return res.json({
-                    success: false,
-                    msg: 'An error occured'
-                })
-            }
+            if (! auth.validateUsernameLength(username, res)) return;
+            username = username.trim().toLowerCase();
 
-            let cols = [username];
-            db.query('SELECT * FROM users WHERE username = ? LIMIT 1', cols, (err, data, fields) => {
+            if (! auth.validatePasswordLength(password, res)) return;
+            // No hashing. Passwords will be compared later in function.
+
+            /*  Construct query */
+
+            query = 'SELECT * FROM users WHERE username = ? LIMIT 1';
+            cols = [username];
+
+            db.query(query, cols, (err, data, fields) => {
                 if (err) {
                     res.json({
                         success: false,
@@ -56,17 +56,15 @@ class SessionRouter {
                             req.session.userID = data[0].id;
                             req.session.privileges = data[0].privileges;
 
-                            res.json({
-                                success: true,
-                                username: data[0].username,
-                                privileges: data[0].privileges,
-                            })
-
                             if (utils.PRINT_DEBUG_SUCCESS) {
                                 utils.printMessage(CONSOLE_GREEN, 'SESSION', 'SUCCESS', `Username: ${username}`, 'logged in');
                             }
 
-                            return;
+                            return res.json({
+                                success: true,
+                                username: data[0].username,
+                                privileges: data[0].privileges,
+                            })
                         }
                         else {
                             res.json({
@@ -91,11 +89,12 @@ class SessionRouter {
 
     logout(app, db) {
         app.post('/logout', auth.userAuthenticated, (req, res) => {
-            req.session.destroy();
-
+            
             if (utils.PRINT_DEBUG_SUCCESS) {
                 utils.printMessage(CONSOLE_GREEN, 'SESSION', 'SUCCESS', `userID: ${req.session.userID}`, 'logged out');
             }
+
+            req.session.destroy();
 
             res.json({
                 success: true
@@ -106,27 +105,28 @@ class SessionRouter {
     isLoggedIn(app, db) {
 
         app.post('/isLoggedIn', (req, res) => {
+            let query, cols = [];
 
-            if (!req.session || !req.session.userID) {
-                res.json({
+            if (! auth.userIsUser(req)) {
+                return res.json({
                     success: false
                 })
-                return;
             }
 
-            let cols = [req.session.userID];
-            db.query('SELECT * FROM users WHERE id = ? LIMIT 1', cols, (err, data, fields) => {
+            query = 'SELECT * FROM users WHERE id = ? LIMIT 1';
+            cols = [req.session.userID];
+
+            db.query(query, cols, (err, data, fields) => {
                 if (data && data.length === 1) {
-                    res.json({
+                    return res.json({
                         success: true,
                         username: data[0].username,
                         privileges: data[0].privileges,
                     })
-
-                    return true;
                 } else {
-                    res.json({
-                        success: false
+
+                    return res.json({
+                        success: false,
                     })
                 }
             });

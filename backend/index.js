@@ -15,7 +15,7 @@ const {CONSOLE_RED, CONSOLE_YELLOW, CONSOLE_GREEN} = utils;
 
 const result = dotenv.config();
 if (result.error) {
-    utils.printMessage(CONSOLE_RED, 'SERVER', 'DOTENV ERROR', result.error, 'reading .config()');
+    utils.printMessage(CONSOLE_RED, ' SERVER ', 'DOTENV ERROR', result.error, 'reading .config()');
     throw result.error;
 }
 
@@ -25,7 +25,6 @@ app.use(express.json());
 const auth = require('./Auth')
 
 const YEAR_IN_MS = (1000 * 86400 * 365);
-
 
 // Database
 const db = mysql.createConnection({
@@ -40,7 +39,7 @@ const db = mysql.createConnection({
 db.connect(function(err) {
     if (err)
     {
-        utils.printMessage(CONSOLE_RED, 'SERVER', 'MYSQL ERROR', err, 'connecting');
+        utils.printMessage(CONSOLE_RED, ' SERVER ', 'MYSQL ERROR', err, 'connecting');
         throw err;
     }
 });
@@ -67,13 +66,24 @@ new PartsRouter(app, db);
 new UsersRouter(app, db);
 
 app.get('/api/users', auth.userAuthorised, function(req, res) {
-    let {username, similar, privileges} = req.query
+    let query, cols = [];
 
-    let cols = [];
-    let query = 'SELECT username, privileges FROM users';
+    let {username, similar, privileges} = req.query;
 
-    if (username !== undefined) {
+    query = 'SELECT username, privileges FROM users';
+
+    if (! username) {
+
+        username = '';
+        if (privileges !== undefined) {
+            query = query + ` WHERE privileges >= ?`;
+            cols.push(privileges);
+        }
+
+    } else {
+
         query = query + ' WHERE username';
+        username = username.trim().toLowerCase();
         
         if (similar) {
             query = query + ` LIKE ?`;
@@ -85,14 +95,6 @@ app.get('/api/users', auth.userAuthorised, function(req, res) {
         
         if (privileges !== undefined) {
             query = query + ` AND privileges >= ?`;
-            cols.push(privileges);
-        }
-    } else {
-        
-        username = '';
-
-        if (privileges !== undefined) {
-            query = query + ` WHERE privileges >= ?`;
             cols.push(privileges);
         }
     }
@@ -108,13 +110,14 @@ app.get('/api/users', auth.userAuthorised, function(req, res) {
 })
 
 app.get('/api/parts', auth.userAuthenticated, function(req, res) {
-    const {name, similar} = req.query;
+    let query, cols = [];
 
-    let query;
-    let cols = []
-    if (name === undefined) {
+    let {name, similar} = req.query;
+
+    if (! name) {
         query = 'SELECT * FROM parts';
     } else {
+
         if (similar) {
             query = `SELECT * FROM parts WHERE name LIKE ?`;
             cols.push(name + '%');
@@ -140,13 +143,16 @@ app.get('/api/mylogs', auth.userAuthenticated, function(req, res) {
 })
 
 app.get('/api/logs', auth.userAuthorised, function(req, res) {
-    const {username, similar} = req.query;  // part_name?
+    let query, cols = [];
+    
+    let {username, similar} = req.query;  // part_name?
 
-    let query;
-    let cols = []
-    if (username === undefined) {
+    if (! username) {
         query = 'SELECT * FROM parts_logs';
     } else {
+
+        username = username.trim().toLowerCase();
+
         if (similar) {
             query = `SELECT * FROM parts_logs WHERE user_username LIKE ?`;
             cols.push(username + '%');
@@ -173,28 +179,30 @@ app.get('/*', function(req, res) {
 
 const port = 4000;
 const server = app.listen(port, () => {
-    utils.printMessage(CONSOLE_GREEN, 'SERVER', 'READY', `Listening on http://localhost:${port}`)
+    utils.printMessage(CONSOLE_YELLOW, ' SERVER ', 'READY', `Listening on http://localhost:${port}`)
 });
 
 process.on('SIGINT', () => {
     console.log('')
-    utils.printMessage(CONSOLE_YELLOW, 'SERVER', 'SHUTDOWN', 'Received kill signal, shutting down...');
+    utils.printMessage(CONSOLE_YELLOW, ' SERVER ', 'SHUTDOWN', '[0] Received kill signal, shutting down...');
 
-    db.end(() => {
-        utils.printMessage(CONSOLE_GREEN, 'SERVER', 'SHUTDOWN', 'Ended connection with database', 'success');
-    });
     sessionStore.close(() => {
-        utils.printMessage(CONSOLE_GREEN, 'SERVER', 'SHUTDOWN', 'Closed MYSQL Session Store', 'success');
-    });
+        utils.printMessage(CONSOLE_YELLOW, ' SERVER ', 'SHUTDOWN', '[1] Closed MYSQL Session Store');
 
-    // Server
-    server.close(() => {
-        utils.printMessage(CONSOLE_GREEN, 'SERVER', 'SHUTDOWN', 'Closed server', 'success');
-        process.exit(0);
-    })
+        db.end(() => {
+            utils.printMessage(CONSOLE_YELLOW, ' SERVER ', 'SHUTDOWN', '[2] Connection with database ended');
+
+            server.close(() => {
+                utils.printMessage(CONSOLE_YELLOW, ' SERVER ', 'SHUTDOWN', '[3] Closed server successfully');
+
+                process.exit(0);
+            });
+        });
+    });
 
     setTimeout(() => {
-        utils.printMessage(CONSOLE_YELLOW, 'SERVER', 'SHUTDOWN', 'Could not close connections in time', 'forced');
+        utils.printMessage(CONSOLE_RED, ' SERVER ', 'SHUTDOWN', 'Connections took too long to close, forced exit.');
+
         process.exit(1);
-    }, 10000);
+    }, 5000);
 });

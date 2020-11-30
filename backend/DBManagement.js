@@ -4,19 +4,19 @@ const utils = require('./Utils')
 const {CONSOLE_RED, CONSOLE_YELLOW, CONSOLE_GREEN} = utils;
 
 // Returns query and changes cols values
-const limitQueryByPrivileges = (query, cols, userID, minPrivileges) => {
-    if (cols.length === 0) {
-        query += ' WHERE';
-    } else {
-        query += ' AND';
-    }
+// const limitQueryByPrivileges = (query, cols, userID, minPrivileges) => {
+//     if (cols.length === 0) {
+//         query += ' WHERE';
+//     } else {
+//         query += ' AND';
+//     }
 
-    query += ' EXISTS (SELECT username FROM users WHERE id = ? AND privileges >= ?)';
-    cols.push(userID);
-    cols.push(minPrivileges);
+//     query += ' EXISTS (SELECT username FROM users WHERE id = ? AND privileges >= ?)';
+//     cols.push(userID);
+//     cols.push(minPrivileges);
 
-    return query;
-}
+//     return query;
+// }
 
 const selectDB = (query, cols, queryReq, db, res, table) => {
     db.query(query, cols, (err, results) => {
@@ -106,7 +106,7 @@ const modifyDB = (query, cols, action, queryReq, db, res, table, req, values) =>
 }
 
 const getLogs = (query, cols, queryReq, db, res) => {
-    return selectDB(query, cols, queryReq, db, res, 'DB logs');
+    return selectDB(query, cols, queryReq, db, res, 'DB logs ');
 }
 
 const getParts = (query, cols, queryReq, db, res) => {
@@ -130,7 +130,7 @@ const logDB = (db, userID, values) => {
     const cols = [userID, userID];
 
     if (!userID || !values.action || !values.name) {
-        utils.printMessage(CONSOLE_RED, 'DB logs', 'ERROR', 'Required column(s) not defined');
+        utils.printMessage(CONSOLE_RED, 'DB logs ', 'ERROR', 'Required column(s) not defined');
         return false;
     }
 
@@ -142,17 +142,17 @@ const logDB = (db, userID, values) => {
 
     db.query(query, cols, (err, results) => {
         if (err) {
-            utils.printMessage(CONSOLE_RED, 'DB logs', 'MYSQL ERROR', err.code, 'logging', query, cols);
+            utils.printMessage(CONSOLE_RED, 'DB logs ', 'MYSQL ERROR', err.code, 'logging', query, cols);
             return;
         }
 
         if (results.affectedRows === 0) {
-            utils.printMessage(CONSOLE_RED, 'DB logs', 'ERROR', 'Action not logged');
+            utils.printMessage(CONSOLE_RED, 'DB logs ', 'ERROR', 'Action not logged');
             return;
         }
 
         if (utils.PRINT_DEBUG_SUCCESS) {
-            utils.printMessage(CONSOLE_GREEN, 'DB logs', 'SUCCESS', JSON.stringify(cols));
+            utils.printMessage(CONSOLE_GREEN, 'DB logs ', 'SUCCESS', JSON.stringify(cols));
         }
     });
 }
@@ -161,5 +161,5 @@ module.exports = {
     getLogs, getParts, getUsers, 
     postParts, postUsers,
     logDB,
-    limitQueryByPrivileges,
+    //limitQueryByPrivileges,
 };
