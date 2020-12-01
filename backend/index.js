@@ -177,7 +177,7 @@ app.get('/*', function(req, res) {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
-const port = 4000;
+const port = 4016;
 const server = app.listen(port, () => {
     utils.printMessage(CONSOLE_YELLOW, ' SERVER ', 'READY', `Listening on http://localhost:${port}`)
 });

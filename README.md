@@ -19,7 +19,7 @@ Install packages:
 ```
 /frontend ~ npm run-script build
 ```
-Copy /build folder into ../backend/
+Copy /build folder to ../backend/build
 ```
 /backend  ~ npm start
 ```
