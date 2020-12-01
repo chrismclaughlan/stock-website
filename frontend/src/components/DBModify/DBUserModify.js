@@ -48,6 +48,7 @@ class DBUserModify extends DBModify{
     .then((result) => {
 
       if (result && result.success) {
+        console.log(successMessage)
         this.setState({
           error: {
             message: `Successfully ${successMessage} ${this.state.username}`, 
@@ -80,7 +81,7 @@ class DBUserModify extends DBModify{
       }
       this.setState({
         error: {
-          message: `An Error occured: ${err}`, 
+          message: `En fejl opstod: ${err}`, 
           variant: 'danger'
         },
         buttonDisabled: false,

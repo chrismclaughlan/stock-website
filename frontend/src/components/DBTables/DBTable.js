@@ -6,7 +6,7 @@ import UserStore from '../../store/UserStore'
 const utils = require('../../Utils');
 
 const MAX_SEARCH_LENGTH = 255;
-const DEFAULT_ENTRIES_PER_PAGE = 16;
+const DEFAULT_ENTRIES_PER_PAGE = 100;
 
 class DBTable extends React.Component{
   constructor(props) {
@@ -129,7 +129,7 @@ class DBTable extends React.Component{
       if (result && result.success) {
         this.setState({
           error: {
-            message: `Successfully deleted ${nameToDelete}`, 
+            message: `Sletning fuldført ${nameToDelete}`, 
             variant: 'success',
           },
           disableButton: false,
@@ -140,7 +140,7 @@ class DBTable extends React.Component{
       {
         this.setState({
           error: {
-            message: `Failed to delete ${nameToDelete}`, 
+            message: `Sletning fejlede ${nameToDelete}`, 
             variant: 'warning',
           },
           disableButton: false,
@@ -151,7 +151,7 @@ class DBTable extends React.Component{
       console.log(`Error trying to fetch '${url}': '${err}'`)
       this.setState({
           error: {
-              message: `Error deleting ${nameToDelete}: ${err}`, 
+              message: `Sletning fejlede ${nameToDelete}: ${err}`, 
               variant: 'danger',
         },
         disableButton: false,
@@ -187,9 +187,9 @@ class DBTable extends React.Component{
       } else {          
         let reason;
         if (query && query.string) {
-          reason = `Could not find  ${query.string}  in database`;
+          reason = `Kunne ikke finde ${query.string}  i databasen`;
         } else {
-          reason = 'Could not find any entries in database';
+          reason = 'Kunne ikke finde nogen match i databasen';
         }
 
         this.setState({
@@ -197,7 +197,7 @@ class DBTable extends React.Component{
           disableButton: false,
           query: null, 
           error: {
-            message: `Query unsuccessful. ${reason}`, 
+            message: `Kø Ikke Fuldført. ${reason}`, 
             variant: "warning",
           },
         });
@@ -255,7 +255,7 @@ class DBTable extends React.Component{
     
     return (
       <Form.Text muted>
-        <p>Found {this.state.entries.length} {(this.state.query.similar) ? 'similar' : null} search result(s) for: {this.state.query.string}</p>
+        <p>Fandt {this.state.entries.length} {(this.state.query.similar) ? 'ligende' : null} søgnings resultater for: {this.state.query.string}</p>
       </Form.Text>
     )
   }
@@ -558,10 +558,10 @@ class DBTable extends React.Component{
             </Modal.Body>
             <Modal.Footer>
               <Button variant="secondary" onClick={() => this.closeConfirmDelete()}>
-                Cancel
+                Afbryd
               </Button>
               <Button variant="primary" onClick={() => this.confirmDelete()}>
-                Confirm
+                Bekræft
               </Button>
             </Modal.Footer>
           </Modal>

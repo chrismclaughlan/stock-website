@@ -39,9 +39,9 @@ class LoginForm extends React.Component{
     resetForm(error) {
         let errorMsg;
         if (error) {
-            errorMsg = {message: 'An error occured', variant: 'danger'};
+            errorMsg = {message: 'En fejl opstod', variant: 'danger'};
         } else {
-            errorMsg = {message: 'Incorrect login details', variant: 'warning'};
+            errorMsg = {message: 'Forkert login oplysninger', variant: 'warning'};
         }
 
         this.setState({
@@ -110,7 +110,7 @@ class LoginForm extends React.Component{
             this.resetForm(true);
             this.setState({
                 error: {
-                    message: `Error trying to login: ${err}`, 
+                    message: `Fejl forsøger at logge ind: ${err}`, 
                     variant: 'danger'
               }
             })
@@ -128,7 +128,7 @@ class LoginForm extends React.Component{
                         <Container fluid>
                             
                         <Form.Row>
-                            <div className="titleText">Login to access webpage</div>
+                            <div className="titleText">Login</div>
                         </Form.Row>
                             <Form.Row 
                                 style={{paddingTop: "10px"}}
@@ -144,7 +144,7 @@ class LoginForm extends React.Component{
                                     onChange={(val) => this.setInputValue('username', val.target.value)}
                                 />
                                 <Form.Control.Feedback type="invalid" tooltip={true}>
-                                    Username not found
+                                    Brugernavn ikke fundet
                                 </Form.Control.Feedback>
 
                                 <FormControl 
@@ -157,7 +157,7 @@ class LoginForm extends React.Component{
                                     onChange={(val) => this.setInputValue('password', val.target.value)}
                                 />
                                 <Form.Control.Feedback type="invalid" tooltip={true}>
-                                    Password invalid
+                                    Kodeord Forkert
                                 </Form.Control.Feedback>
                                 <Button
                                 type="submit" 

@@ -115,7 +115,7 @@ class DBPartModify extends DBModify{
       }
       this.setState({
         error: {
-          message: `An Error occured: ${err}`, 
+          message: `En fejl opstod: ${err}`, 
           variant: 'danger'
         },
         buttonDisabled: false,

@@ -7,7 +7,7 @@ class AdminPanelLogs extends React.Component{
       return (
           <div className="AdminPanelLogs">
             <div className="container">
-              <LogsTable columnsIgnore={["id", "user_id"]} columnNames={["Brugernavn", "action", "Del-Navn", "Del-Antal", "Del-Reol", "Del-Hylde", "Dato"]}/>
+              <LogsTable columnsIgnore={["id", "user_id"]} columnNames={["Brugernavn", "Handling", "Del-Navn", "Del-Antal", "Del-Reol", "Del-Hylde", "Dato"]}/>
             </div>
           </div>
       )
